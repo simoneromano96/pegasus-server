@@ -1,14 +1,12 @@
+mod graphql;
+
 use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer, Result};
 use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{Context, Data, EmptyMutation, Object, Schema, EmptySubscription};
+use async_graphql::{Context, Data, EmptyMutation, EmptySubscription, Object, Schema};
 use async_graphql_actix_web::{Request, Response};
+use graphql::UserQuery;
 
-#[Object]
-impl QueryRoot {
-    async fn hello(&self) -> &str {
-        "Hello world!"
-    }
-}
+type MySchema = Schema<UserQuery, EmptyMutation, EmptySubscription>;
 
 async fn index(schema: web::Data<MySchema>, req: HttpRequest, gql_request: Request) -> Response {
     let request = gql_request.into_inner();
@@ -25,7 +23,7 @@ async fn gql_playgound() -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let schema = Schema::new(QueryRoot, EmptyMutation, EmptySubscription);
+    let schema = Schema::new(UserQuery, EmptyMutation, EmptySubscription);
 
     println!("Playground: http://localhost:8000");
 
@@ -41,7 +39,7 @@ async fn main() -> std::io::Result<()> {
             // )
             .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
     })
-    .bind("127.0.0.1:8000")?
+    .bind("0.0.0.0:8000")?
     .run()
     .await
 }
