@@ -1,7 +1,8 @@
-use super::User;
 use async_graphql::{Context, Object, Result};
-use wither::{prelude::*};
-use wither::mongodb::Database;
+use futures::stream::StreamExt;
+use wither::{mongodb::Database, prelude::*};
+
+use super::User;
 
 pub struct UserQuery;
 
@@ -9,7 +10,7 @@ pub struct UserQuery;
 impl UserQuery {
     async fn dummy_user(&self) -> User {
         let user = User {
-			id: None,
+            id: None,
             username: String::from("Test123"),
             password: String::from("test123"),
         };
@@ -17,9 +18,16 @@ impl UserQuery {
         user
     }
 
-	async fn read_users(&self, ctx: &Context<'_>) -> Result<String> {
-		let db: &Database = ctx.data()?;
-		let users = User::find(&db, None, None).await?;
-		Ok(String::from("test"))
-	}
+    async fn read_users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
+        let db: &Database = ctx.data()?;
+        let mut users = Vec::new();
+        let mut users_cursor = User::find(&db, None, None).await?;
+
+        // users_cursor -> next() -> Some(user or error) or Err(?)
+        while let Some(user) = users_cursor.next().await {
+            users.push(user.unwrap());
+        }
+
+        Ok(users)
+    }
 }
