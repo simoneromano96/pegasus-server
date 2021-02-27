@@ -2,7 +2,7 @@ version: "3.6"
 
 services: 
   mongodb:
-    image: mongodb
+    image: mongo
     ports: 
       - 27017:27017
     environment:
