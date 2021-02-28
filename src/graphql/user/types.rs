@@ -1,30 +1,44 @@
 use async_graphql::SimpleObject;
 use serde::{Deserialize, Serialize};
-use wither::prelude::*;
+use thiserror::Error;
 use wither::{
     bson::{doc, oid::ObjectId},
     mongodb::Database,
+    prelude::*,
     WitherError,
 };
 
-use crate::utils::hash_password;
+use crate::utils::{hash_password, verify_password};
+
+#[derive(Error, Debug)]
+pub enum UserErrors {
+    #[error("There was a db error")]
+    DatabaseError(#[from] WitherError),
+    #[error("Could not find user with username `{0}`")]
+    UserNotFound(String),
+    #[error("The password doesn't match")]
+    WrongPassword,
+}
 
 #[derive(Debug, Model, Serialize, Deserialize, SimpleObject)]
 #[model(index(keys = r#"doc!{"username": 1}"#, options = r#"doc!{"unique": true}"#))]
 pub struct User {
-    /// The ID of the model.
+    /// The user ID
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
+    /// The user's unique username
     pub username: String,
+    /// The user's hashed password
     pub password: String,
 }
 
 impl User {
+    /// Method to create a User, hashing the password
     pub async fn create(
         db: &Database,
         username: String,
         password: &str,
-    ) -> Result<Self, WitherError> {
+    ) -> Result<Self, UserErrors> {
         let password = hash_password(password);
         let mut new_user = Self {
             id: None,
@@ -33,5 +47,18 @@ impl User {
         };
         new_user.save(db, None).await?;
         Ok(new_user)
+    }
+
+    pub async fn login(db: &Database, username: &str, password: &str) -> Result<Self, UserErrors> {
+        match Self::find_one(&db, doc! { username: username }, None).await? {
+            Some(user) => {
+                if verify_password(password, &user.password) {
+                    Ok(user)
+                } else {
+                    Err(UserErrors::WrongPassword)
+                }
+            }
+            None => Err(UserErrors::UserNotFound(String::from(username))),
+        }
     }
 }

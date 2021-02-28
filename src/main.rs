@@ -1,14 +1,16 @@
 mod graphql;
 mod utils;
 
-use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer, Result};
-use async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
-use async_graphql::{Context, Data, EmptySubscription, Object, Schema};
+use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer};
+use async_graphql::{
+    http::{playground_source, GraphQLPlaygroundConfig},
+    EmptySubscription, Schema,
+};
 use async_graphql_actix_web::{Request, Response};
-use graphql::{User, UserMutation, UserQuery};
+use graphql::{Mutation, Query, User};
 use wither::{mongodb::Client, prelude::*};
 
-type MySchema = Schema<UserQuery, UserMutation, EmptySubscription>;
+type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
 async fn index(schema: web::Data<MySchema>, _req: HttpRequest, gql_request: Request) -> Response {
     let request = gql_request.into_inner();
@@ -34,7 +36,7 @@ async fn main() -> std::io::Result<()> {
     // Sync indexes
     User::sync(&db).await.expect("Could not sync user indexes");
 
-    let schema = Schema::build(UserQuery, UserMutation, EmptySubscription)
+    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
         .data(db.clone())
         .finish();
 
