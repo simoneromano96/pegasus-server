@@ -13,13 +13,19 @@ actix-web = "3.3.2"
 async-graphql = "2.5.8"
 # actix-web graphql adapter
 async-graphql-actix-web = "2.5.8"
+# Configuration helper
+config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 # Hashers
 djangohashers = { version = "1.4.0", default-features = false, features = ["with_argon2"] }
 # Cursors traits
 futures = "0.3.13"
+# Common HTTP traits, types and constants
+http = "0.2.3"
+# Lazy static evaluation
+lazy_static = "1.4.0"
 # Serialize/Deserializer
 serde = { version = "1.0.123", features = ["derive"] }
+# Error derive
 thiserror = "1.0.24"
-# serde_derive = "1.0.123"
 # MongoDB ODM
 wither = "0.9.0"
