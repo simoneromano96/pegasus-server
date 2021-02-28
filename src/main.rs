@@ -2,25 +2,41 @@ mod configuration;
 mod graphql;
 mod utils;
 
-use actix_web::{self, App, HttpMessage, HttpRequest, HttpResponse, HttpServer, guard, web};
+use std::sync::Arc;
+
+use actix_web::{self, guard, web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer};
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
     EmptySubscription, Schema,
 };
 use async_graphql_actix_web::{Request, Response};
+use configuration::APP_CONFIG;
 use graphql::{Mutation, Query, User};
+use redis::AsyncCommands;
 use wither::{mongodb::Client, prelude::*};
 
-use configuration::APP_CONFIG;
+struct AppContext {
+    pub db: wither::mongodb::Database,
+    pub redis: Arc<redis::Client>,
+}
 
 type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
-async fn index(schema: web::Data<MySchema>, req: HttpRequest, gql_request: Request) -> Response {
+async fn index(
+    schema: web::Data<MySchema>,
+    // app_context: web::Data<AppContext>,
+    redis: web::Data<Arc<redis::Client>>,
+    req: HttpRequest,
+    gql_request: Request,
+) -> Response {
     let request = gql_request.into_inner();
     if let Some(cookie) = req.cookie(&APP_CONFIG.cookie.name) {
         // println!("{:?}", cookie);
         let session_id = cookie.value();
         println!("{}", session_id);
+        let mut redis_connection = redis.get_async_connection().await.expect("fuck");
+        let username: Option<String> = redis_connection.get(session_id).await.expect("fuck 2");
+        println!("{:?}", username);
     }
     schema.execute(request).await.into()
 }
@@ -44,8 +60,16 @@ async fn main() -> std::io::Result<()> {
     // Sync indexes
     User::sync(&db).await.expect("Could not sync user indexes");
 
+    // Redis
+    let redis = Arc::new(redis::Client::open("redis://127.0.0.1/").expect("Could not init redis"));
+
+    let app_context = AppContext {
+        db,
+        redis: redis.clone(),
+    };
+
     let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
-        .data(db.clone())
+        .data(app_context)
         .finish();
 
     println!("Playground: http://localhost:8000");
@@ -53,6 +77,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .data(schema.clone())
+            .data(redis.clone())
             .service(web::resource("/").guard(guard::Post()).to(index))
             // .service(
             //     web::resource("/")

@@ -1,6 +1,8 @@
 use async_graphql::{Context, Object, Result};
 use futures::stream::StreamExt;
-use wither::{mongodb::Database, prelude::*};
+use wither::prelude::*;
+
+use crate::AppContext;
 
 use super::User;
 
@@ -20,7 +22,7 @@ impl UserQuery {
 
     /// Gets all current users
     async fn read_users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
-        let db: &Database = ctx.data()?;
+        let AppContext { db, .. } = ctx.data()?;
         let mut users = Vec::new();
         let mut users_cursor = User::find(&db, None, None).await?;
 
