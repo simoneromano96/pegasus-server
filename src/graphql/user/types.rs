@@ -8,7 +8,7 @@ use wither::{
     WitherError,
 };
 
-use crate::utils::{hash_password, verify_password};
+use crate::utils::{hash_password, verify_password, PasswordErrors};
 
 #[derive(Error, Debug)]
 pub enum UserErrors {
@@ -17,7 +17,7 @@ pub enum UserErrors {
     #[error("Could not find user with username `{0}`")]
     UserNotFound(String),
     #[error("The password doesn't match")]
-    WrongPassword,
+    WrongPassword(#[from] PasswordErrors),
 }
 
 #[derive(Debug, Model, Serialize, Deserialize, SimpleObject)]
@@ -49,14 +49,12 @@ impl User {
         Ok(new_user)
     }
 
+    /// Logs in a user
     pub async fn login(db: &Database, username: &str, password: &str) -> Result<Self, UserErrors> {
         match Self::find_one(&db, doc! { username: username }, None).await? {
             Some(user) => {
-                if verify_password(password, &user.password) {
-                    Ok(user)
-                } else {
-                    Err(UserErrors::WrongPassword)
-                }
+                verify_password(password, &user.password)?;
+                Ok(user)
             }
             None => Err(UserErrors::UserNotFound(String::from(username))),
         }
