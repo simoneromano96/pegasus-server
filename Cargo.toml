@@ -23,6 +23,8 @@ futures = "0.3.13"
 http = "0.2.3"
 # Lazy static evaluation
 lazy_static = "1.4.0"
+# URI safe and cryptographically secure random string generator
+nanoid = "0.3.0"
 # Serialize/Deserializer
 serde = { version = "1.0.123", features = ["derive"] }
 # Error derive

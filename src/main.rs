@@ -2,7 +2,7 @@ mod configuration;
 mod graphql;
 mod utils;
 
-use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{self, App, HttpMessage, HttpRequest, HttpResponse, HttpServer, guard, web};
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
     EmptySubscription, Schema,
@@ -11,10 +11,17 @@ use async_graphql_actix_web::{Request, Response};
 use graphql::{Mutation, Query, User};
 use wither::{mongodb::Client, prelude::*};
 
+use configuration::APP_CONFIG;
+
 type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
-async fn index(schema: web::Data<MySchema>, _req: HttpRequest, gql_request: Request) -> Response {
+async fn index(schema: web::Data<MySchema>, req: HttpRequest, gql_request: Request) -> Response {
     let request = gql_request.into_inner();
+    if let Some(cookie) = req.cookie(&APP_CONFIG.cookie.name) {
+        // println!("{:?}", cookie);
+        let session_id = cookie.value();
+        println!("{}", session_id);
+    }
     schema.execute(request).await.into()
 }
 

@@ -25,21 +25,21 @@ pub struct ServerConfig {
 #[serde(rename_all = "camelCase")]
 pub struct CookieConfig {
 	/// Cookie `cookie-name`, any valid ASCII characters ex. session-id
-    name: String,
+    pub name: String,
 	/// Cookie `Path`, ex. /
-    path: String,
+    pub path: String,
 	/// Cookie `Domain`, ex. website.com
-    domain: String,
+    pub domain: String,
 	/// Cookie `Secure`, if true will be set and sent only on https
-    secure: bool,
+    pub secure: bool,
 	/// Cookie `HttpOnly`, if true client-side js cannot read the cookie
-    httponly: bool,
+    pub httponly: bool,
 	/// Cookie `Max-Age`, Number of seconds until the cookie expires
-    maxage: i64,
+    pub maxage: i64,
 	/// Cookie `SameSite`, Controls whether a cookie is sent with cross-origin requests
 	///
 	/// Can be `Strict`, `Lax`, `None`, if `None` `Secure` must be true
-	samesite: String,
+	pub samesite: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -28,7 +28,8 @@ pub struct User {
     pub id: Option<ObjectId>,
     /// The user's unique username
     pub username: String,
-    /// The user's hashed password
+    /// The user's hashed password, hidden in the graphql schema
+    #[graphql(skip)]
     pub password: String,
 }
 
@@ -51,7 +52,7 @@ impl User {
 
     /// Logs in a user
     pub async fn login(db: &Database, username: &str, password: &str) -> Result<Self, UserErrors> {
-        match Self::find_one(&db, doc! { username: username }, None).await? {
+        match Self::find_one(&db, doc! { "username": username }, None).await? {
             Some(user) => {
                 verify_password(password, &user.password)?;
                 Ok(user)
