@@ -1,3 +1,4 @@
+mod configuration;
 mod graphql;
 mod utils;
 
