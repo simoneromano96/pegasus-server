@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use anyhow::Result;
 use redis::{AsyncCommands, Client};
 use serde::{Deserialize, Serialize};
@@ -11,7 +9,7 @@ pub fn init_redis_client() -> Client {
 }
 
 /// Helper to set a serializable value into redis
-pub async fn redis_serialize_set<T>(data: &T, redis: &Arc<Client>, key: &String) -> Result<()>
+pub async fn redis_serialize_set<T>(data: &T, redis: &Client, key: &String) -> Result<()>
 where
     T: ?Sized + Serialize,
 {
@@ -22,7 +20,7 @@ where
 }
 
 /// Helper to get a deserializable value from redis
-pub async fn redis_deserialize_get<T>(redis: &Arc<Client>, key: &str) -> Result<T>
+pub async fn redis_deserialize_get<T>(redis: &Client, key: &str) -> Result<T>
 where
     T: for<'de> Deserialize<'de>,
 {

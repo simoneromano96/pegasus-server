@@ -1,4 +1,4 @@
-use actix_web::cookie::{Cookie, SameSite};
+use actix_web::cookie::Cookie;
 use async_graphql::{Context, Object, Result};
 use http::header::SET_COOKIE;
 use nanoid::nanoid;
