@@ -41,13 +41,13 @@ impl User {
         password: &str,
     ) -> Result<Self, UserErrors> {
         let password = hash_password(password);
-        let mut new_user = Self {
+        let mut user = Self {
             id: None,
             username,
             password,
         };
-        new_user.save(db, None).await?;
-        Ok(new_user)
+        user.save(db, None).await?;
+        Ok(user)
     }
 
     /// Logs in a user

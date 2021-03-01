@@ -1,8 +1,9 @@
 mod configuration;
 mod graphql;
+mod types;
 mod utils;
 
-use std::sync::Arc;
+use std::{io::Result, sync::Arc};
 
 use actix_web::{self, guard, web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer};
 use async_graphql::{
@@ -12,13 +13,8 @@ use async_graphql::{
 use async_graphql_actix_web::{Request, Response};
 use configuration::APP_CONFIG;
 use graphql::{Mutation, Query, User};
-use redis::AsyncCommands;
-use wither::{mongodb::Client, prelude::*};
-
-struct AppContext {
-    pub db: wither::mongodb::Database,
-    pub redis: Arc<redis::Client>,
-}
+use types::{AppContext, UserSession};
+use utils::{init_database, init_redis_client, redis_deserialize_get};
 
 type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
@@ -29,15 +25,18 @@ async fn index(
     req: HttpRequest,
     gql_request: Request,
 ) -> Response {
-    let request = gql_request.into_inner();
+    let mut request = gql_request.into_inner();
+    let mut user_session = None;
     if let Some(cookie) = req.cookie(&APP_CONFIG.cookie.name) {
-        // println!("{:?}", cookie);
         let session_id = cookie.value();
-        println!("{}", session_id);
-        let mut redis_connection = redis.get_async_connection().await.expect("fuck");
-        let username: Option<String> = redis_connection.get(session_id).await.expect("fuck 2");
-        println!("{:?}", username);
+        if let Ok(user) = redis_deserialize_get::<User>(&redis, session_id).await {
+            user_session = Some(UserSession {
+                user,
+                session_id: session_id.to_string(),
+            });
+        }
     }
+    request = request.data(user_session);
     schema.execute(request).await.into()
 }
 
@@ -50,19 +49,10 @@ async fn gql_playgound() -> HttpResponse {
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    // Connect
-    let db = Client::with_uri_str("mongodb://root:example@localhost:27017/")
-        .await
-        .expect("Could not connect to the db")
-        .database("mydb");
-
-    // Sync indexes
-    User::sync(&db).await.expect("Could not sync user indexes");
-
+async fn main() -> Result<()> {
+    let db = init_database().await;
     // Redis
-    let redis = Arc::new(redis::Client::open("redis://127.0.0.1/").expect("Could not init redis"));
-
+    let redis = Arc::new(init_redis_client());
     let app_context = AppContext {
         db,
         redis: redis.clone(),
