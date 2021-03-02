@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use actix_web::cookie::Cookie;
 use async_graphql::{Context, Object, Result};
 use http::header::SET_COOKIE;
@@ -25,8 +27,9 @@ impl UserMutation {
     async fn login(&self, ctx: &Context<'_>, username: String, password: String) -> Result<User> {
         let AppContext { db, redis } = ctx.data()?;
         let user = User::login(db, &username, &password).await?;
+        
         let session_id = nanoid!();
-        redis_serialize_set(&user, redis, &session_id).await?;
+        redis_serialize_set(redis, &session_id, &user, Some(APP_CONFIG.cookie.maxage.try_into()?)).await?;
         let cookie = create_cookie(session_id);
 
         ctx.append_http_header(SET_COOKIE, cookie);
@@ -49,7 +52,7 @@ impl UserMutation {
 /// Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 fn create_cookie(session_id: String) -> String {
     let cookie: Cookie = Cookie::build(APP_CONFIG.cookie.name.clone(), session_id)
-        .max_age(Duration::seconds(APP_CONFIG.cookie.maxage))
+        .max_age(Duration::seconds(APP_CONFIG.cookie.maxage.into()))
         .domain(APP_CONFIG.cookie.domain.clone())
         .path(APP_CONFIG.cookie.path.clone())
         .same_site(APP_CONFIG.cookie.samesite.into())

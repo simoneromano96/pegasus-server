@@ -54,7 +54,7 @@ pub struct CookieConfig {
     /// Cookie `HttpOnly`, if true client-side js cannot read the cookie
     pub httponly: bool,
     /// Cookie `Max-Age`, Number of seconds until the cookie expires
-    pub maxage: i64,
+    pub maxage: u32,
     /// Cookie `SameSite`, Controls whether a cookie is sent with cross-origin requests
     ///
     /// Can be `Strict`, `Lax`, `None`, if `None` `Secure` must be true

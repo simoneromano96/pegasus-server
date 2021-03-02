@@ -8,14 +8,18 @@ pub fn init_redis_client() -> Client {
     Client::open("redis://127.0.0.1/").expect("Could not init redis")
 }
 
-/// Helper to set a serializable value into redis
-pub async fn redis_serialize_set<T>(data: &T, redis: &Client, key: &String) -> Result<()>
+/// Helper to set a serializable value into redis with an optional expire time
+pub async fn redis_serialize_set<T>(redis: &Client, key: &str, data: &T, expiry: Option<usize>) -> Result<()>
 where
-    T: ?Sized + Serialize,
+    T: ?Sized + Serialize
 {
     let mut redis_connection = redis.get_async_connection().await?;
     let value = serde_json::to_string(data)?;
-    redis_connection.set(key, &value).await?;
+    if let Some(ttl) = expiry {
+        redis_connection.set_ex(key, &value, ttl).await?;
+    } else {
+        redis_connection.set(key, &value).await?;
+    }
     Ok(())
 }
 

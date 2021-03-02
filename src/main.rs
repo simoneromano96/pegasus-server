@@ -29,7 +29,7 @@ async fn index(
     let mut user_session = None;
     if let Some(cookie) = req.cookie(&APP_CONFIG.cookie.name) {
         let session_id = cookie.value();
-        if let Ok(user) = redis_deserialize_get::<User>(&redis, session_id).await {
+        if let Ok(user) = redis_deserialize_get(&redis, session_id).await {
             user_session = Some(UserSession {
                 user,
                 session_id: session_id.to_string(),
