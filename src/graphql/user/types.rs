@@ -20,7 +20,7 @@ pub enum UserErrors {
     WrongPassword(#[from] PasswordErrors),
 }
 
-#[derive(Debug, Model, Serialize, Deserialize, SimpleObject)]
+#[derive(Debug, Clone, Model, Serialize, Deserialize, SimpleObject)]
 #[model(index(keys = r#"doc!{"username": 1}"#, options = r#"doc!{"unique": true}"#))]
 pub struct User {
     /// The user ID

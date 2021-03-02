@@ -5,7 +5,9 @@ mod utils;
 
 use std::{io::Result, sync::Arc};
 
-use actix_web::{self, guard, web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{
+    self, guard, web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer,
+};
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
     EmptySubscription, Schema,
@@ -14,7 +16,7 @@ use async_graphql_actix_web::{Request, Response};
 use configuration::APP_CONFIG;
 use graphql::{Mutation, Query, User};
 use types::{AppContext, UserSession};
-use utils::{init_database, init_redis_client, redis_deserialize_get};
+use utils::{get_session, init_database, init_redis_client, redis_deserialize_get};
 
 type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
@@ -26,16 +28,7 @@ async fn index(
     gql_request: Request,
 ) -> Response {
     let mut request = gql_request.into_inner();
-    let mut user_session = None;
-    if let Some(cookie) = req.cookie(&APP_CONFIG.cookie.name) {
-        let session_id = cookie.value();
-        if let Ok(user) = redis_deserialize_get(&redis, session_id).await {
-            user_session = Some(UserSession {
-                user,
-                session_id: session_id.to_string(),
-            });
-        }
-    }
+    let user_session = get_session(req, &redis).await;
     request = request.data(user_session);
     schema.execute(request).await.into()
 }

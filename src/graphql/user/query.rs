@@ -2,7 +2,7 @@ use async_graphql::{Context, Object, Result};
 use futures::stream::StreamExt;
 use wither::prelude::*;
 
-use crate::AppContext;
+use crate::{AppContext, types::UserSession};
 
 use super::User;
 
@@ -32,5 +32,11 @@ impl UserQuery {
         }
 
         Ok(users)
+    }
+
+    /// Get logged user
+    async fn me(&self, ctx: &Context<'_>) -> Result<User> {
+        let UserSession { user, .. } = ctx.data()?;
+        Ok(user.clone())
     }
 }

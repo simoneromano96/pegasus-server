@@ -1,5 +1,6 @@
 use std::env;
 
+use actix_web::cookie::Key;
 use config::{Config, Environment, File};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -40,7 +41,7 @@ impl Into<actix_web::cookie::SameSite> for SameSite {
     }
 }
 /// Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CookieConfig {
     /// Cookie `cookie-name`, any valid ASCII characters ex. session-id
@@ -59,9 +60,14 @@ pub struct CookieConfig {
     ///
     /// Can be `Strict`, `Lax`, `None`, if `None` `Secure` must be true
     pub samesite: SameSite,
+    /// Cookie encryption secret
+    pub secret: String,
+    /// Cookie encryption key derived from secret
+    #[serde(skip)]
+    pub key: Option<Key>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub debug: bool,
@@ -97,7 +103,11 @@ impl Settings {
             .expect("Cannot get env");
 
         // Deserialize configuration
-        let r: Settings = s.try_into().expect("Configuration error");
+        let mut r: Settings = s.try_into().expect("Configuration error");
+
+        let key = Key::from(r.cookie.secret.as_bytes());
+
+        r.cookie.key = Some(key);
 
         r
     }

@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 # HTTP Server
-actix-web = "3.3.2"
+actix-web = { version = "3.3.2", features = ["secure-cookies"] }
 # Idiomatic error handling
 anyhow = "1.0.38"
 # Graphql implementation
