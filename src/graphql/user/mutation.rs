@@ -1,16 +1,9 @@
-use std::convert::TryInto;
-
-use actix_web::cookie::Cookie;
 use async_graphql::{Context, Object, Result};
 use http::header::SET_COOKIE;
-use nanoid::nanoid;
-use redis::AsyncCommands;
-use time::Duration;
 
 use super::User;
-use crate::{configuration::APP_CONFIG, utils::{destroy_session, create_session}};
+use crate::{utils::{destroy_session, create_session}};
 use crate::types::{AppContext, UserSession};
-use crate::utils::redis_serialize_set;
 
 #[derive(Default)]
 pub struct UserMutation;

@@ -5,18 +5,15 @@ mod utils;
 
 use std::{io::Result, sync::Arc};
 
-use actix_web::{
-    self, guard, web, App, HttpMessage, HttpRequest, HttpResponse, HttpServer,
-};
+use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer};
 use async_graphql::{
     http::{playground_source, GraphQLPlaygroundConfig},
     EmptySubscription, Schema,
 };
 use async_graphql_actix_web::{Request, Response};
-use configuration::APP_CONFIG;
-use graphql::{Mutation, Query, User};
-use types::{AppContext, UserSession};
-use utils::{get_session, init_database, init_redis_client, redis_deserialize_get};
+use graphql::{Mutation, Query};
+use types::AppContext;
+use utils::{get_session, init_database, init_redis_client};
 
 type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
@@ -29,7 +26,9 @@ async fn index(
 ) -> Response {
     let mut request = gql_request.into_inner();
     let user_session = get_session(req, &redis).await;
-    request = request.data(user_session);
+    if let Some(session) = user_session {
+        request = request.data(session);
+    }
     schema.execute(request).await.into()
 }
 

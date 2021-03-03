@@ -25,4 +25,4 @@ cookie:
   # Same site conf, don't send cookie to other sites
   samesite: Strict
   # The encryption secret of the cookie
-  secret: space_cat
+  secret: c3qtCRWiDWYQ8i9ujtq0Aj6c94OqCPGFZltG63KfrEmRAitqA9hKbrJS47nBg7cR
