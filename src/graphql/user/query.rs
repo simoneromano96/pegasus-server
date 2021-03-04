@@ -2,9 +2,8 @@ use async_graphql::{Context, Object, Result};
 use futures::stream::StreamExt;
 use wither::prelude::*;
 
-use crate::{AppContext, types::UserSession};
-
 use super::User;
+use crate::{types::UserSession, AppContext};
 
 #[derive(Default)]
 pub struct UserQuery;

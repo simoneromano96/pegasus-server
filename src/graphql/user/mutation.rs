@@ -2,8 +2,8 @@ use async_graphql::{Context, Object, Result};
 use http::header::SET_COOKIE;
 
 use super::User;
-use crate::{utils::{destroy_session, create_session}};
 use crate::types::{AppContext, UserSession};
+use crate::utils::{create_session, destroy_session};
 
 #[derive(Default)]
 pub struct UserMutation;

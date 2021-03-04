@@ -1,10 +1,13 @@
 use std::sync::Arc;
 
+use redis::Client;
+use wither::mongodb::Database;
+
 use crate::graphql::User;
 
 pub struct AppContext {
-    pub db: wither::mongodb::Database,
-    pub redis: Arc<redis::Client>,
+    pub db: Database,
+    pub redis: Arc<Client>,
 }
 
 #[derive(Debug)]

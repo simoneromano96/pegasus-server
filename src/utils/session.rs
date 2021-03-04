@@ -30,7 +30,10 @@ pub async fn get_session(req: HttpRequest, redis: &Client) -> Option<UserSession
         let mut jar = CookieJar::new();
         jar.add_original(encrypted_cookie);
         // Decrypt cookie
-        if let Some(cookie) = jar.private(&APP_CONFIG.cookie.key.as_ref().unwrap()).get(&APP_CONFIG.cookie.name) {
+        if let Some(cookie) = jar
+            .private(&APP_CONFIG.cookie.key.as_ref().unwrap())
+            .get(&APP_CONFIG.cookie.name)
+        {
             // println!("{:?}", &cookie);
             let session_id = cookie.value();
             // println!("{:?}", cookie.value());
@@ -53,12 +56,13 @@ pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
     let session_id = nanoid!();
     // Create a session cookie
     let plain_cookie = create_session_cookie(&session_id);
-    
+
     // println!("{:?}", &plain_cookie);
-    
+
     // Set cookie
     let mut jar = CookieJar::new();
-    jar.private(&APP_CONFIG.cookie.key.as_ref().unwrap()).add(plain_cookie);
+    jar.private(&APP_CONFIG.cookie.key.as_ref().unwrap())
+        .add(plain_cookie);
 
     // Save redis session
     redis_serialize_set(

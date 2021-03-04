@@ -12,7 +12,7 @@ use crate::utils::{hash_password, verify_password, PasswordErrors};
 
 #[derive(Error, Debug)]
 pub enum UserErrors {
-    #[error("There was a db error")]
+    #[error("{0}")]
     DatabaseError(#[from] WitherError),
     #[error("Could not find user with username `{0}`")]
     UserNotFound(String),

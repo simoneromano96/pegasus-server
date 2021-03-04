@@ -12,7 +12,10 @@ lazy_static! {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MongoConfig {
+    /// DB Connection URI
     pub uri: String,
+    /// DB Name
+    pub name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -64,16 +67,29 @@ pub struct CookieConfig {
     pub secret: String,
     /// Cookie encryption key derived from secret
     #[serde(skip)]
-    pub key: Option<Key>
+    pub key: Option<Key>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RedisConfig {
+    /// Redis connection URI
+    pub uri: String,
 }
 
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
+    /// Activate some debug info
     pub debug: bool,
+    /// Database configuration
     pub database: MongoConfig,
+    /// Some server configuration
     pub server: ServerConfig,
+    /// Cookie and session configuration
     pub cookie: CookieConfig,
+    /// Redis configuration
+    pub redis: RedisConfig,
 }
 
 impl Settings {
@@ -85,7 +101,7 @@ impl Settings {
         let mut config_file_path = env::current_dir().expect("Cannot get current path");
 
         // Get current RUN_MODE, should be: development/production
-        let current_env = env::var("RUN_MODE").unwrap_or(String::from("development"));
+        let current_env = env::var("RUN_MODE").unwrap_or_else(|_| String::from("development"));
 
         // From current path add /environments
         config_file_path.push("environments");

@@ -4,6 +4,10 @@ debug: true
 database:
   # mongodb connection uri
   uri: mongodb://root:example@localhost:27017
+  # name
+  name: pegasus
+redis:
+  uri: redis://localhost:6379
 # Server configuration
 server:
   # Server will listen at port

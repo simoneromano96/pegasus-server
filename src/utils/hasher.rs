@@ -16,8 +16,7 @@ pub fn hash_password(password: &str) -> String {
 
 /// Verify a password, gives Ok if the password is verified else the error
 pub fn verify_password(password: &str, encoded: &str) -> Result<(), PasswordErrors> {
-    let result = check_password(password, encoded);
-    match result {
+    match check_password(password, encoded) {
         Ok(valid) => {
             if valid {
                 Ok(())

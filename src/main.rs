@@ -12,15 +12,19 @@ use async_graphql::{
 };
 use async_graphql_actix_web::{Request, Response};
 use graphql::{Mutation, Query};
+use redis::Client as RedisClient;
 use types::AppContext;
 use utils::{get_session, init_database, init_redis_client};
+use web::Data;
+
+use crate::configuration::APP_CONFIG;
 
 type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
 async fn index(
-    schema: web::Data<MySchema>,
+    schema: Data<MySchema>,
     // app_context: web::Data<AppContext>,
-    redis: web::Data<Arc<redis::Client>>,
+    redis: Data<Arc<RedisClient>>,
     req: HttpRequest,
     gql_request: Request,
 ) -> Response {
@@ -54,8 +58,6 @@ async fn main() -> Result<()> {
         .data(app_context)
         .finish();
 
-    println!("Playground: http://localhost:8000");
-
     HttpServer::new(move || {
         App::new()
             .data(schema.clone())
@@ -69,7 +71,7 @@ async fn main() -> Result<()> {
             // )
             .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
     })
-    .bind("0.0.0.0:8000")?
+    .bind(format!("0.0.0.0:{}", &APP_CONFIG.server.port))?
     .run()
     .await
 }
