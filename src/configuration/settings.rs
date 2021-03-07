@@ -1,18 +1,27 @@
-
 use std::env;
 
 use config::{Config, Environment, File};
 use lazy_static::lazy_static;
 use serde::Deserialize;
+use sloggers::types::{Format, Severity};
 
 lazy_static! {
 	pub static ref APP_CONFIG: Settings = Settings::init();
 }
 
 #[derive(Debug, Deserialize)]
+pub struct LoggerConfig {
+	/// What should the (terminal) logger print
+	pub severity: Severity,
+	/// Logger format (full or compact)
+	pub format: Format,
+	/// File logger path output
+	pub path: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Settings {
-	/// Enable some debugging logs
-	pub debug: bool,
+	pub logger: LoggerConfig,
 }
 
 impl Settings {
@@ -33,6 +42,8 @@ impl Settings {
 		// Eg.. `APP_DEBUG=1 ./target/app` would set the `debug` key
 		s.merge(Environment::with_prefix("APP"))
 			.expect("Could not read environment");
+
+		// info!(LOGGER, "App settings: {:?}", s);
 
 		s.try_into().expect("Could not create settings structure")
 	}

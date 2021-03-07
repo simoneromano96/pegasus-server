@@ -1,2 +1,8 @@
-# Enable debug logs
-debug: true
+# Logger configurations
+logger:
+  # Logger severity
+  severity: trace
+  # Logger format
+  format: full
+  # File logger path
+  path: ./logs/log

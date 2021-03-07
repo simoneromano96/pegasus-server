@@ -8,7 +8,7 @@ use async_graphql::{
 use async_graphql::{Context, Data, EmptyMutation, Object, Result, Schema, Subscription};
 use async_graphql_actix_web::{Request, Response, WSSubscription};
 use configuration::logger::LOGGER;
-use slog::{debug, info};
+use slog::{debug, error, info};
 
 type MySchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
 
@@ -90,6 +90,8 @@ async fn main() -> std::io::Result<()> {
 	let schema = Schema::new(QueryRoot, MutationRoot, EmptySubscription);
 
 	info!(LOGGER, "Playground: http://localhost:8000");
+
+	// error!(LOGGER, "Error test");
 
 	HttpServer::new(move || {
 		App::new()
