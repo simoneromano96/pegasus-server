@@ -1,44 +1,57 @@
-use lazy_static::lazy_static;
-use slog::{o, trace, Drain, Duplicate, Logger};
-use sloggers::{
-	file::FileLoggerBuilder,
-	terminal::{Destination, TerminalLoggerBuilder},
-	types::Severity,
-	Build,
+use std::convert::TryInto;
+
+use log::LevelFilter;
+use log4rs::{
+	append::{
+		console::ConsoleAppender,
+		rolling_file::{
+			policy::compound::{roll::fixed_window::FixedWindowRoller, trigger::size::SizeTrigger, CompoundPolicy},
+			RollingFileAppender,
+		},
+	},
+	config::{Appender, Config, Root},
+	encode::json::JsonEncoder,
+	filter::threshold::ThresholdFilter,
 };
 
 use super::APP_CONFIG;
 
-lazy_static! {
-	pub static ref LOGGER: Logger = init_loggers();
-}
+// lazy_static! {
+// 	pub static ref LOGGER: Logger = init_loggers();
+// }
 
-fn init_loggers() -> Logger {
-	let terminal_logger = init_terminal_logger();
-	// trace!(terminal_logger, "Initialized terminal logger");
+pub fn init_logger() {
+	let console_appender = ConsoleAppender::builder().build();
 
-	let file_logger = init_file_logger();
-	// trace!(file_logger, "Initialized file logger");
+	let size_trigger = SizeTrigger::new(u64::pow(2, 16));
 
-	let combined = Logger::root(Duplicate::new(terminal_logger, file_logger).fuse(), o!());
-	// trace!(combined, "Initialized combined logger");
+	let pattern = format!("{}.{{}}.gz", &APP_CONFIG.logger.path);
 
-	combined
-}
+	let fixed_roller = FixedWindowRoller::builder()
+		.build(&pattern, 2)
+		.expect("Could not create fixed_roller");
 
-fn init_terminal_logger() -> Logger {
-	let mut builder = TerminalLoggerBuilder::new();
-	builder.level(APP_CONFIG.logger.severity);
-	builder.format(APP_CONFIG.logger.format);
-	builder.destination(Destination::Stdout);
+	let rolling_policy = CompoundPolicy::new(Box::new(size_trigger), Box::new(fixed_roller));
 
-	builder.build().expect("Could not initialize terminal logger")
-}
+	let file_appender = RollingFileAppender::builder()
+		.encoder(Box::new(JsonEncoder::new()))
+		.build(&APP_CONFIG.logger.path, Box::new(rolling_policy))
+		.expect("Could not create file_appender");
 
-fn init_file_logger() -> Logger {
-	let mut builder = FileLoggerBuilder::new(&APP_CONFIG.logger.path);
-	builder.level(Severity::Error);
-	builder.rotate_compress(true);
+	let config = Config::builder()
+		.appender(Appender::builder().build("console_appender", Box::new(console_appender)))
+		.appender(
+			Appender::builder()
+				.filter(Box::new(ThresholdFilter::new(LevelFilter::Info)))
+				.build("file_appender", Box::new(file_appender)),
+		)
+		.build(
+			Root::builder()
+				.appender("console_appender")
+				.appender("file_appender")
+				.build(APP_CONFIG.logger.level.parse().unwrap_or(LevelFilter::Warn)),
+		)
+		.unwrap();
 
-	builder.build().expect("Could not initialize file logger")
+	log4rs::init_config(config).unwrap();
 }

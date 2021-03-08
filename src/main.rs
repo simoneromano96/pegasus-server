@@ -5,10 +5,10 @@ use async_graphql::{
 	http::{playground_source, GraphQLPlaygroundConfig},
 	EmptySubscription,
 };
-use async_graphql::{Context, Data, EmptyMutation, Object, Result, Schema, Subscription};
-use async_graphql_actix_web::{Request, Response, WSSubscription};
-use configuration::logger::LOGGER;
-use slog::{debug, error, info};
+use async_graphql::{Object, Result, Schema};
+use async_graphql_actix_web::{Request, Response};
+use configuration::init_logger;
+use log::debug;
 
 type MySchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
 
@@ -22,7 +22,7 @@ impl QueryRoot {
 
 	/// Gets a password associated with an URL, or will fail if not found
 	async fn get_password(&self, url: String) -> Result<String> {
-		debug!(LOGGER, "get_password {}", url);
+		debug!("get_password {}", url);
 		let password = "password123";
 		let result = format!("The password of: {} is {}", url, password);
 		Ok(result)
@@ -35,7 +35,7 @@ struct MutationRoot;
 impl MutationRoot {
 	/// Saves a password associated with an URL
 	async fn set_password(&self, url: String, password: String) -> Result<String> {
-		debug!(LOGGER, "set_password {} {}", url, password);
+		debug!("set_password {} {}", url, password);
 		Ok(format!("Saved {} password {} successfully!", url, password))
 	}
 }
@@ -87,11 +87,15 @@ async fn gql_playgound() -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+	init_logger();
+
 	let schema = Schema::new(QueryRoot, MutationRoot, EmptySubscription);
 
-	info!(LOGGER, "Playground: http://localhost:8000");
-
-	// error!(LOGGER, "Error test");
+	// trace!("Tracing test");
+	// debug!("Debug test");
+	// info!("Info test");
+	// warn!("Warn test");
+	// error!("Error test");
 
 	HttpServer::new(move || {
 		App::new()

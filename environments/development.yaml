@@ -1,8 +1,6 @@
 # Logger configurations
 logger:
-  # Logger severity
-  severity: trace
-  # Logger format
-  format: full
+  # Logging level
+  level: trace
   # File logger path
-  path: ./logs/log
+  path: ./logs/log.json

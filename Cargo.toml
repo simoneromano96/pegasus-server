@@ -17,9 +17,9 @@ async-graphql-actix-web = "2.5.10"
 config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 # Evaulate config only once
 lazy_static = "1.4.0"
+# Logger
+log = "0.4.14"
+# Logger methods
+log4rs = { version = "1.0.0", features = ["gzip"] }
 # Serialization/Deserialization library
 serde = { version = "1.0.124", features = ["derive"] }
-# Logger
-slog = "2.7.0"
-# Logger methods
-sloggers = "1.0.1"

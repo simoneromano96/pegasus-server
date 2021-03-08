@@ -3,7 +3,7 @@ use std::env;
 use config::{Config, Environment, File};
 use lazy_static::lazy_static;
 use serde::Deserialize;
-use sloggers::types::{Format, Severity};
+// use sloggers::types::{Format, Severity};
 
 lazy_static! {
 	pub static ref APP_CONFIG: Settings = Settings::init();
@@ -12,9 +12,7 @@ lazy_static! {
 #[derive(Debug, Deserialize)]
 pub struct LoggerConfig {
 	/// What should the (terminal) logger print
-	pub severity: Severity,
-	/// Logger format (full or compact)
-	pub format: Format,
+	pub level: String,
 	/// File logger path output
 	pub path: String,
 }
