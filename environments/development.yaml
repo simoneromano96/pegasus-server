@@ -3,4 +3,4 @@ logger:
   # Logging level
   level: trace
   # File logger path
-  path: ./logs/log.json
+  path: ./logs/app.log
