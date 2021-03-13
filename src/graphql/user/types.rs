@@ -11,8 +11,8 @@ pub enum UserErrors {
 	DatabaseError(#[from] WitherError),
 	#[error("Wrong password")]
 	WrongPassword,
-	#[error("User not found")]
-	UserNotFound,
+	#[error("Could not find user with username: `{0}`")]
+	UserNotFound(String),
 }
 
 // Define a model. Simple as deriving a few traits.
@@ -53,7 +53,7 @@ impl User {
 				Err(UserErrors::WrongPassword)
 			}
 		} else {
-			Err(UserErrors::UserNotFound)
+			Err(UserErrors::UserNotFound(username.to_string()))
 		}
 	}
 }

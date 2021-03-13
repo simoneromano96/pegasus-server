@@ -1,3 +1,4 @@
+use actix_web::http::header::SET_COOKIE;
 use async_graphql::{Context, Object, Result};
 
 use crate::types::AppContext;
@@ -23,6 +24,8 @@ impl UserMutation {
 		let AppContext { db } = ctx.data()?;
 
 		let user = User::login(db, &username, &password).await?;
+
+		ctx.insert_http_header(SET_COOKIE, "");
 
 		Ok(user)
 	}

@@ -25,6 +25,7 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 # Logger methods
 log4rs = { version = "1.0.0", features = ["gzip"] }
+nanoid = "0.3.0"
 # Serialization/Deserialization library
 serde = { version = "1.0.124", features = ["derive"] }
 # Handle errors with enums
