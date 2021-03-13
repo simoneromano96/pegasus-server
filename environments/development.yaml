@@ -4,3 +4,9 @@ logger:
   level: trace
   # File logger path
   path: ./logs/app.log
+# Mongo configuration
+mongo:
+  # Connection URI
+  uri: mongodb://localhost:27017/
+  # Database name
+  database: pegasus

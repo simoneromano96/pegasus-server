@@ -10,6 +10,14 @@ lazy_static! {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct MongoConfig {
+	/// Mongo connection URI
+	pub uri: String,
+	/// Mongo database name
+	pub database: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct LoggerConfig {
 	/// What should the (terminal) logger print
 	pub level: String,
@@ -20,6 +28,7 @@ pub struct LoggerConfig {
 #[derive(Debug, Deserialize)]
 pub struct Settings {
 	pub logger: LoggerConfig,
+	pub mongo: MongoConfig,
 }
 
 impl Settings {

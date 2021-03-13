@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use log::LevelFilter;
 use log4rs::{
 	append::{

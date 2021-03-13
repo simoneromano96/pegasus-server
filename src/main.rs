@@ -1,44 +1,19 @@
 mod configuration;
+mod graphql;
+mod types;
+mod utils;
 
 use actix_web::{guard, web, App, HttpRequest, HttpResponse, HttpServer};
+use async_graphql::Schema;
 use async_graphql::{
 	http::{playground_source, GraphQLPlaygroundConfig},
 	EmptySubscription,
 };
-use async_graphql::{Object, Result, Schema};
 use async_graphql_actix_web::{Request, Response};
 use configuration::init_logger;
-use log::debug;
-
-type MySchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
-
-struct QueryRoot;
-
-#[Object]
-impl QueryRoot {
-	async fn hello(&self) -> Result<String> {
-		Ok(String::from("Hello world"))
-	}
-
-	/// Gets a password associated with an URL, or will fail if not found
-	async fn get_password(&self, url: String) -> Result<String> {
-		debug!("get_password {}", url);
-		let password = "password123";
-		let result = format!("The password of: {} is {}", url, password);
-		Ok(result)
-	}
-}
-
-struct MutationRoot;
-
-#[Object]
-impl MutationRoot {
-	/// Saves a password associated with an URL
-	async fn set_password(&self, url: String, password: String) -> Result<String> {
-		debug!("set_password {} {}", url, password);
-		Ok(format!("Saved {} password {} successfully!", url, password))
-	}
-}
+use graphql::{Mutation, MySchema, Query};
+use types::AppContext;
+use utils::init_database;
 
 // struct SubscriptionRoot;
 //
@@ -52,7 +27,7 @@ impl MutationRoot {
 //     }
 // }
 
-async fn index(schema: web::Data<MySchema>, req: HttpRequest, gql_request: Request) -> Response {
+async fn index(schema: web::Data<MySchema>, _req: HttpRequest, gql_request: Request) -> Response {
 	schema.execute(gql_request.into_inner()).await.into()
 }
 
@@ -89,7 +64,13 @@ async fn gql_playgound() -> HttpResponse {
 async fn main() -> std::io::Result<()> {
 	init_logger();
 
-	let schema = Schema::new(QueryRoot, MutationRoot, EmptySubscription);
+	let db = init_database().await;
+
+	let context = AppContext { db };
+
+	let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
+		.data(context)
+		.finish();
 
 	// trace!("Tracing test");
 	// debug!("Debug test");

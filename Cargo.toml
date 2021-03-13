@@ -9,6 +9,8 @@ edition = "2018"
 [dependencies]
 # HTTP Server
 actix-web = "3.3.2"
+# Have a more flexible Result type
+anyhow = "1.0.38"
 # Graphql implementation
 async-graphql = "2.5.10"
 # Graphql implementation actix web adapter
@@ -23,3 +25,6 @@ log = "0.4.14"
 log4rs = { version = "1.0.0", features = ["gzip"] }
 # Serialization/Deserialization library
 serde = { version = "1.0.124", features = ["derive"] }
+# Handle errors with enums
+thiserror = "1.0.24"
+wither = "0.9.0"
