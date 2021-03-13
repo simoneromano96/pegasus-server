@@ -7,6 +7,6 @@ logger:
 # Mongo configuration
 mongo:
   # Connection URI
-  uri: mongodb://localhost:27017/
+  uri: mongodb://root:example@localhost:27017/
   # Database name
   database: pegasus

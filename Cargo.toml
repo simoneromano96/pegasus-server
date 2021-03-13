@@ -17,6 +17,8 @@ async-graphql = "2.5.10"
 async-graphql-actix-web = "2.5.10"
 # Configuration manager
 config = { version = "0.10.1", default-features = false, features = ["yaml"] }
+# Hashers
+djangohashers = "1.4.0"
 # Evaulate config only once
 lazy_static = "1.4.0"
 # Logger
@@ -27,4 +29,5 @@ log4rs = { version = "1.0.0", features = ["gzip"] }
 serde = { version = "1.0.124", features = ["derive"] }
 # Handle errors with enums
 thiserror = "1.0.24"
+# Mongo ODM
 wither = "0.9.0"
