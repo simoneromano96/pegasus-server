@@ -2079,6 +2079,7 @@ dependencies = [
  "async-graphql-actix-web",
  "config",
  "djangohashers",
+ "futures-lite",
  "lazy_static",
  "log",
  "log4rs",

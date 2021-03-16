@@ -19,6 +19,8 @@ async-graphql-actix-web = "2.5.10"
 config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 # Hashers
 djangohashers = "1.4.0"
+# Futures traits
+futures-lite = "1.11.3"
 # Evaulate config only once
 lazy_static = "1.4.0"
 # Logger

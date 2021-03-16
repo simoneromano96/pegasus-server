@@ -1,4 +1,5 @@
-use async_graphql::{futures_util::StreamExt, Context, Object, Result};
+use async_graphql::{Context, Object, Result};
+use futures_lite::stream::StreamExt;
 use wither::{bson::doc, Model};
 
 use crate::types::AppContext;
@@ -12,13 +13,7 @@ pub struct UserQuery;
 impl UserQuery {
 	async fn users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
 		let AppContext { db } = ctx.data()?;
-		let mut users_cursor = User::find(db, doc! {}, None).await?;
-		let mut users = Vec::new();
-		while let Some(r) = users_cursor.next().await {
-			if let Ok(user) = r {
-				users.push(user);
-			}
-		}
+		let users: Vec<User> = User::find(db, doc! {}, None).await?.try_collect().await?;
 		Ok(users)
 	}
 }
