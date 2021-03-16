@@ -8,21 +8,13 @@ edition = "2018"
 
 [dependencies]
 # HTTP Server
-actix-web = "3.3.2"
-# Hashers
-djangohashers = "1.4.0"
-# Logger
-log = "0.4.14"
-# Logger methods
-log4rs = { version = "1.0.0", features = ["gzip"] }
-# Handle errors with enums
 actix-web = { version = "3.3.2", features = ["secure-cookies"] }
-# Idiomatic error handling
+# Handle errors with enums
 anyhow = "1.0.38"
 # Graphql implementation
-async-graphql = "2.5.9"
+async-graphql = "2.5.13"
 # actix-web graphql adapter
-async-graphql-actix-web = "2.5.9"
+async-graphql-actix-web = "2.5.13"
 # Configuration helper
 config = { version = "0.10.1", default-features = false, features = ["yaml"] }
 # Hashers
@@ -33,12 +25,16 @@ futures = "0.3.13"
 http = "0.2.3"
 # Lazy static evaluation
 lazy_static = "1.4.0"
+# Logger
+log = "0.4.14"
+# Logger methods
+log4rs = { version = "1.0.0", features = ["gzip"] }
 # URI safe and cryptographically secure random string generator
 nanoid = "0.3.0"
 # Redis client (pinned to 0.17.0 for tokio <0.3, 0.18.0 <1 compatibility, required by wither and actix-web)
 redis = { version = "0.17.0", features = ["aio", "tokio-comp", "connection-manager"] }
 # Serialize/Deserializer
-serde = { version = "1.0.123", features = ["derive"] }
+serde = { version = "1.0.124", features = ["derive"] }
 serde_json = "1.0.64"
 # Error derive
 thiserror = "1.0.24"
