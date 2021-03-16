@@ -1,5 +1,5 @@
 use async_graphql::{Context, Object, Result};
-use futures::stream::StreamExt;
+use futures::TryStreamExt;
 use wither::prelude::*;
 
 use super::User;
@@ -22,13 +22,7 @@ impl UserQuery {
     /// Gets all current users
     async fn read_users(&self, ctx: &Context<'_>) -> Result<Vec<User>> {
         let AppContext { db, .. } = ctx.data()?;
-        let mut users = Vec::new();
-        let mut users_cursor = User::find(&db, None, None).await?;
-
-        // users_cursor -> next() -> Some(user or error) or Err(?)
-        while let Some(user) = users_cursor.next().await {
-            users.push(user.unwrap());
-        }
+        let users: Vec<User> = User::find(&db, None, None).await?.try_collect().await?;
 
         Ok(users)
     }

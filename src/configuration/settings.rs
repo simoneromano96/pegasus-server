@@ -15,7 +15,7 @@ pub struct MongoConfig {
     /// DB Connection URI
     pub uri: String,
     /// DB Name
-    pub name: String,
+    pub database: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -77,13 +77,21 @@ pub struct RedisConfig {
     pub uri: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoggerConfig {
+	/// What should the (terminal) logger print
+	pub level: String,
+	/// File logger path output
+	pub path: String,
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
-    /// Activate some debug info
-    pub debug: bool,
-    /// Database configuration
-    pub database: MongoConfig,
+    /// Logger configuration
+    pub logger: LoggerConfig,
+    /// Mongo database configuration
+    pub mongo: MongoConfig,
     /// Some server configuration
     pub server: ServerConfig,
     /// Cookie and session configuration

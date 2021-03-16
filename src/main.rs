@@ -3,7 +3,7 @@ mod graphql;
 mod types;
 mod utils;
 
-use std::{io::Result, sync::Arc};
+use std::sync::Arc;
 
 use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer};
 use async_graphql::{
@@ -11,15 +11,14 @@ use async_graphql::{
     EmptySubscription, Schema,
 };
 use async_graphql_actix_web::{Request, Response};
-use graphql::{Mutation, Query};
+use configuration::init_logger;
+use graphql::{Mutation, MySchema, Query};
 use redis::Client as RedisClient;
 use types::AppContext;
 use utils::{get_session, init_database, init_redis_client};
 use web::Data;
 
 use crate::configuration::APP_CONFIG;
-
-type MySchema = Schema<Query, Mutation, EmptySubscription>;
 
 async fn index(
     schema: Data<MySchema>,
@@ -37,11 +36,11 @@ async fn index(
 }
 
 async fn gql_playgound() -> HttpResponse {
-	HttpResponse::Ok()
-		.content_type("text/html; charset=utf-8")
-		.body(playground_source(
-			GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
-		))
+    HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(playground_source(
+            GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+        ))
 }
 
 // async fn index_ws(
@@ -67,7 +66,7 @@ async fn gql_playgound() -> HttpResponse {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-	init_logger();
+    init_logger();
 
     let db = init_database().await;
     // Redis
