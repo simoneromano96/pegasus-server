@@ -1,7 +1,7 @@
 # Unix EOL
 end_of_line = lf
 
-# 4 space indentation
+# 2 space indentation
 [*.rs]
 indent_style = tabs
-indent_size = 4
+indent_size = 2
