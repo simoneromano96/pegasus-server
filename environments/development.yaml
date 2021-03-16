@@ -10,3 +10,28 @@ mongo:
   uri: mongodb://root:example@localhost:27017/
   # Database name
   database: pegasus
+# Redis configuration
+redis:
+  uri: redis://localhost:6379
+# Server configuration
+server:
+  # Server will listen at port
+  port: 8000
+# Cookie configuration
+cookie:
+  # The cookie name
+  name: session-id
+  # The cookie path
+  path: /
+  # The cookie domain
+  domain: localhost
+  # If the cookie is secure (false for dev)
+  secure: false
+  # Hide cookie from client js
+  httponly: true
+  # How long the session lasts (in seconds)
+  maxage: 3600 # 60 * 60 (1 hour)
+  # Same site conf, don't send cookie to other sites
+  samesite: Strict
+  # The encryption secret of the cookie
+  secret: c3qtCRWiDWYQ8i9ujtq0Aj6c94OqCPGFZltG63KfrEmRAitqA9hKbrJS47nBg7cR

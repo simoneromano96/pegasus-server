@@ -1,59 +1,63 @@
 use async_graphql::SimpleObject;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use wither::{bson::doc, bson::oid::ObjectId, mongodb::Database, prelude::*, WitherError};
+use wither::{
+    bson::{doc, oid::ObjectId},
+    mongodb::Database,
+    prelude::*,
+    WitherError,
+};
 
-use crate::utils::{hash_password, verify_password};
+use crate::utils::{hash_password, verify_password, PasswordErrors};
 
-#[derive(Debug, Error)]
+#[derive(Error, Debug)]
 pub enum UserErrors {
-	#[error("{0}")]
-	DatabaseError(#[from] WitherError),
-	#[error("Wrong password")]
-	WrongPassword,
-	#[error("Could not find user with username: `{0}`")]
-	UserNotFound(String),
+    #[error("{0}")]
+    DatabaseError(#[from] WitherError),
+    #[error("Could not find user with username `{0}`")]
+    UserNotFound(String),
+    #[error("The password doesn't match")]
+    WrongPassword(#[from] PasswordErrors),
 }
 
-// Define a model. Simple as deriving a few traits.
-#[derive(Debug, Model, Serialize, Deserialize, SimpleObject)]
+#[derive(Debug, Clone, Model, Serialize, Deserialize, SimpleObject)]
 #[model(index(keys = r#"doc!{"username": 1}"#, options = r#"doc!{"unique": true}"#))]
 pub struct User {
-	/// The ID of the model.
-	#[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-	pub id: Option<ObjectId>,
-	/// The user's username address.
-	pub username: String,
-	/// The user's (HASHED) password.
-	pub password: String,
+    /// The user ID
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>,
+    /// The user's unique username
+    pub username: String,
+    /// The user's hashed password, hidden in the graphql schema
+    #[graphql(skip)]
+    pub password: String,
 }
 
 impl User {
-	/// Creates a new user
-	pub async fn create(db: &Database, username: String, password: &str) -> Result<Self, UserErrors> {
-		let password = hash_password(password);
+    /// Method to create a User, hashing the password
+    pub async fn create(
+        db: &Database,
+        username: String,
+        password: &str,
+    ) -> Result<Self, UserErrors> {
+        let password = hash_password(password);
+        let mut user = Self {
+            id: None,
+            username,
+            password,
+        };
+        user.save(db, None).await?;
+        Ok(user)
+    }
 
-		let mut user = User {
-			id: None,
-			username,
-			password,
-		};
-
-		user.save(db, None).await?;
-
-		Ok(user)
-	}
-
-	pub async fn login(db: &Database, username: &str, password: &str) -> Result<Self, UserErrors> {
-		let maybe_user = Self::find_one(db, doc! { "username": username }, None).await?;
-		if let Some(user) = maybe_user {
-			if verify_password(password, &user.password) {
-				Ok(user)
-			} else {
-				Err(UserErrors::WrongPassword)
-			}
-		} else {
-			Err(UserErrors::UserNotFound(username.to_string()))
-		}
-	}
+    /// Logs in a user
+    pub async fn login(db: &Database, username: &str, password: &str) -> Result<Self, UserErrors> {
+        match Self::find_one(&db, doc! { "username": username }, None).await? {
+            Some(user) => {
+                verify_password(password, &user.password)?;
+                Ok(user)
+            }
+            None => Err(UserErrors::UserNotFound(String::from(username))),
+        }
+    }
 }

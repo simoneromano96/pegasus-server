@@ -3,32 +3,37 @@ mod graphql;
 mod types;
 mod utils;
 
-use actix_web::{guard, web, App, HttpRequest, HttpResponse, HttpServer};
-use async_graphql::Schema;
+use std::{io::Result, sync::Arc};
+
+use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer};
 use async_graphql::{
-	http::{playground_source, GraphQLPlaygroundConfig},
-	EmptySubscription,
+    http::{playground_source, GraphQLPlaygroundConfig},
+    EmptySubscription, Schema,
 };
 use async_graphql_actix_web::{Request, Response};
-use configuration::init_logger;
-use graphql::{Mutation, MySchema, Query};
+use graphql::{Mutation, Query};
+use redis::Client as RedisClient;
 use types::AppContext;
-use utils::init_database;
+use utils::{get_session, init_database, init_redis_client};
+use web::Data;
 
-// struct SubscriptionRoot;
-//
-// #[Subscription]
-// impl SubscriptionRoot {
-//     async fn values(&self, ctx: &Context<'_>) -> async_graphql::Result<impl Stream<Item = i32>> {
-//         if ctx.data::<MyToken>()?.0 != "123456" {
-//             return Err("Forbidden".into());
-//         }
-//         Ok(stream::once(async move { 10 }))
-//     }
-// }
+use crate::configuration::APP_CONFIG;
 
-async fn index(schema: web::Data<MySchema>, _req: HttpRequest, gql_request: Request) -> Response {
-	schema.execute(gql_request.into_inner()).await.into()
+type MySchema = Schema<Query, Mutation, EmptySubscription>;
+
+async fn index(
+    schema: Data<MySchema>,
+    // app_context: web::Data<AppContext>,
+    redis: Data<Arc<RedisClient>>,
+    req: HttpRequest,
+    gql_request: Request,
+) -> Response {
+    let mut request = gql_request.into_inner();
+    let user_session = get_session(req, &redis).await;
+    if let Some(session) = user_session {
+        request = request.data(session);
+    }
+    schema.execute(request).await.into()
 }
 
 async fn gql_playgound() -> HttpResponse {
@@ -64,33 +69,32 @@ async fn gql_playgound() -> HttpResponse {
 async fn main() -> std::io::Result<()> {
 	init_logger();
 
-	let db = init_database().await;
+    let db = init_database().await;
+    // Redis
+    let redis = Arc::new(init_redis_client());
+    let app_context = AppContext {
+        db,
+        redis: redis.clone(),
+    };
 
-	let context = AppContext { db };
+    let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
+        .data(app_context)
+        .finish();
 
-	let schema = Schema::build(Query::default(), Mutation::default(), EmptySubscription)
-		.data(context)
-		.finish();
-
-	// trace!("Tracing test");
-	// debug!("Debug test");
-	// info!("Info test");
-	// warn!("Warn test");
-	// error!("Error test");
-
-	HttpServer::new(move || {
-		App::new()
-			.data(schema.clone())
-			.service(web::resource("/").guard(guard::Post()).to(index))
-			// .service(
-			//     web::resource("/")
-			//         .guard(guard::Get())
-			//         .guard(guard::Header("upgrade", "websocket"))
-			//         .to(index_ws),
-			// )
-			.service(web::resource("/").guard(guard::Get()).to(gql_playgound))
-	})
-	.bind("0.0.0.0:8000")?
-	.run()
-	.await
+    HttpServer::new(move || {
+        App::new()
+            .data(schema.clone())
+            .data(redis.clone())
+            .service(web::resource("/").guard(guard::Post()).to(index))
+            // .service(
+            //     web::resource("/")
+            //         .guard(guard::Get())
+            //         .guard(guard::Header("upgrade", "websocket"))
+            //         .to(index_ws),
+            // )
+            .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
+    })
+    .bind(format!("0.0.0.0:{}", &APP_CONFIG.server.port))?
+    .run()
+    .await
 }
