@@ -1,7 +1,7 @@
 use async_graphql::{Context, Object, Result};
 use http::header::SET_COOKIE;
 
-use super::User;
+use super::{User, create_user, login_user};
 use crate::types::{AppContext, UserSession};
 use crate::utils::{create_session, destroy_session};
 
@@ -13,13 +13,13 @@ impl UserMutation {
   /// Registers a new user
   async fn signup(&self, ctx: &Context<'_>, username: String, password: String) -> Result<User> {
     let AppContext { db, .. } = ctx.data()?;
-    Ok(User::create(db, username, &password).await?)
+    Ok(create_user(db, username, &password).await?)
   }
 
   /// Logs in a user using cookies
   async fn login(&self, ctx: &Context<'_>, username: String, password: String) -> Result<User> {
     let AppContext { db, redis } = ctx.data()?;
-    let user = User::login(db, &username, &password).await?;
+    let user = login_user(db, &username, &password).await?;
     let cookie = create_session(redis, &user).await?;
 
     ctx.append_http_header(SET_COOKIE, cookie);

@@ -1,4 +1,4 @@
-use async_graphql::SimpleObject;
+use async_graphql::{ComplexObject, Context, SimpleObject};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use wither::{
@@ -8,7 +8,10 @@ use wither::{
   WitherError,
 };
 
-use crate::utils::{hash_password, verify_password, PasswordErrors};
+use crate::{
+  graphql::Account,
+  utils::{hash_password, verify_password, PasswordErrors},
+};
 
 #[derive(Error, Debug)]
 pub enum UserErrors {
@@ -21,6 +24,7 @@ pub enum UserErrors {
 }
 
 #[derive(Debug, Clone, Model, Serialize, Deserialize, SimpleObject)]
+#[graphql(complex)]
 #[model(index(keys = r#"doc!{"username": 1}"#, options = r#"doc!{"unique": true}"#))]
 pub struct User {
   /// The user ID
@@ -31,29 +35,42 @@ pub struct User {
   /// The user's hashed password, hidden in the graphql schema
   #[graphql(skip)]
   pub password: String,
+  /// The user's associated account ids, hidden in the graphql schema
+  #[graphql(skip)]
+  pub account_ids: Vec<ObjectId>,
+  // pub accounts: Option<Vec<Account>>,
 }
 
+#[ComplexObject]
 impl User {
-  /// Method to create a User, hashing the password
-  pub async fn create(db: &Database, username: String, password: &str) -> Result<Self, UserErrors> {
-    let password = hash_password(password);
-    let mut user = Self {
-      id: None,
-      username,
-      password,
-    };
-    user.save(db, None).await?;
-    Ok(user)
+  /// Populates all user's accounts
+  /// The user's associated accounts
+  pub async fn accounts(&self, ctx: &Context<'_>) -> Vec<Account> {
+    Vec::new()
   }
+}
 
-  /// Logs in a user
-  pub async fn login(db: &Database, username: &str, password: &str) -> Result<Self, UserErrors> {
-    match Self::find_one(&db, doc! { "username": username }, None).await? {
-      Some(user) => {
-        verify_password(password, &user.password)?;
-        Ok(user)
-      }
-      None => Err(UserErrors::UserNotFound(String::from(username))),
+/// Method to create a User, hashing the password
+pub async fn create_user(db: &Database, username: String, password: &str) -> Result<User, UserErrors> {
+  let password = hash_password(password);
+  let account_ids = Vec::new();
+  let mut user = User {
+    id: None,
+    username,
+    password,
+    account_ids,
+  };
+  user.save(db, None).await?;
+  Ok(user)
+}
+
+/// Logs in a user
+pub async fn login_user(db: &Database, username: &str, password: &str) -> Result<User, UserErrors> {
+  match User::find_one(&db, doc! { "username": username }, None).await? {
+    Some(user) => {
+      verify_password(password, &user.password)?;
+      Ok(user)
     }
+    None => Err(UserErrors::UserNotFound(String::from(username))),
   }
 }

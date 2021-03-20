@@ -10,13 +10,13 @@ edition = "2018"
 # HTTP Server
 actix-web = { version = "3.3.2", features = ["secure-cookies"] }
 # Handle errors with enums
-anyhow = "1.0.38"
+anyhow = "1.0.39"
 # Graphql implementation
-async-graphql = "2.5.13"
+async-graphql = "2.6.2"
 # actix-web graphql adapter
-async-graphql-actix-web = "2.5.13"
+async-graphql-actix-web = "2.6.2"
 # Configuration helper
-config = { version = "0.10.1", default-features = false, features = ["yaml"] }
+config = { version = "0.11.0", default-features = false, features = ["yaml"] }
 # Hashers
 djangohashers = { version = "1.4.0", default-features = false, features = ["with_argon2"] }
 # Cursors traits
@@ -39,6 +39,6 @@ serde_json = "1.0.64"
 # Error derive
 thiserror = "1.0.24"
 # Time utils
-time = "0.2.25"
+time = "0.2.26"
 # MongoDB ODM
 wither = "0.9.0"
