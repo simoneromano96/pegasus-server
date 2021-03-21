@@ -7,7 +7,8 @@ use crate::configuration::APP_CONFIG;
 /// Initialise redis client
 /// Panics if couldn't connect to redis server
 pub fn init_redis_client() -> Result<Client, RedisError> {
-  Client::open(APP_CONFIG.redis.uri.clone())
+  let uri = APP_CONFIG.redis.uri.clone();
+  Client::open(uri)
 }
 
 /// Helper to set a serializable value into redis with an optional expire time
