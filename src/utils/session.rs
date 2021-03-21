@@ -23,7 +23,7 @@ pub enum SessionErrors {
 /// Extracts encrypted user session from a HTTP Request
 pub async fn get_session(req: HttpRequest, redis: &Client) -> Option<UserSession> {
   let mut user_session = None;
-
+  // Get the encrypted cookie from the request
   if let Some(encrypted_cookie) = req.cookie(&APP_CONFIG.cookie.name) {
     // println!("{:?}", &encrypted_cookie);
     // Create cookie jar and set cookie
