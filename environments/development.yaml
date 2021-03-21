@@ -1,7 +1,7 @@
 # Logger configurations
 logger:
   # Logging level
-  level: trace
+  level: debug
   # File logger path
   path: ./logs/app.log
 # Mongo configuration

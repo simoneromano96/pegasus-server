@@ -1,14 +1,12 @@
 use async_graphql::{ComplexObject, Context, SimpleObject};
+use futures::TryStreamExt;
+use log::debug;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use wither::{
-  bson::{doc, oid::ObjectId},
-  mongodb::Database,
-  prelude::*,
-  WitherError,
-};
+use wither::{WitherError, bson::{Document, doc, oid::ObjectId}, mongodb::Database, prelude::*};
 
 use crate::{
+  types::AppContext,
   graphql::Account,
   utils::{hash_password, verify_password, PasswordErrors},
 };
@@ -45,8 +43,27 @@ pub struct User {
 impl User {
   /// Populates all user's accounts
   /// The user's associated accounts
-  pub async fn accounts(&self, ctx: &Context<'_>) -> Vec<Account> {
-    Vec::new()
+  pub async fn accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Account>> {
+    debug!("Resolving accounts");
+    let AppContext { db, .. } = ctx.data()?;
+    let user_id = self.id.as_ref().unwrap();
+    let lookup_query = doc! {
+      "$lookup": {
+        "from": User::COLLECTION_NAME,
+        "localField": "account_ids",
+        "foreignField": "_id",
+        "as": "accounts",
+        // "pipeline": [{
+        //   "$match": {
+        //     "_id": user_id
+        //   }
+        // }]
+      }
+    };
+    let accounts: Vec<Document> = User::collection(&db).aggregate(vec![lookup_query], None).await?.try_collect().await?;
+    debug!("{:?}", accounts);
+
+    Ok(Vec::new())
   }
 }
 
