@@ -28,6 +28,7 @@ pub struct Account {
 
 #[ComplexObject]
 impl Account {
+  /// Account username, this can be, for example, an email, an actual username etc.
   pub async fn username(&self) -> Vec<u8> {
     self.username.bytes.clone()
   }

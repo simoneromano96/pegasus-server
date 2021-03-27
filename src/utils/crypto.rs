@@ -9,7 +9,8 @@ use rand_chacha::ChaCha20Rng;
 pub fn encrypt_data(key: String, data: String) -> Vec<u8> {
   debug!("Encrypting: {:?} with {:?}", &data, &key);
 
-  let key = Key::from_slice(key.as_bytes()); // 32-bytes
+  // MUST be 32-bytes
+  let key = Key::from_slice(key.as_bytes());
 
   let cipher = XChaCha20Poly1305::new(key);
 
@@ -18,16 +19,14 @@ pub fn encrypt_data(key: String, data: String) -> Vec<u8> {
 
   debug!("{:?}", &random_nonce);
 
-  let nonce = XNonce::from_slice(&random_nonce); // 24-bytes; unique
+   // MUST be 24-bytes; unique
+  let nonce = XNonce::from_slice(&random_nonce);
 
   let ciphertext = cipher
     .encrypt(nonce, data.as_bytes())
     .expect("encryption failure!");
 
   debug!("{:?}", &ciphertext);
-
-  // let encrypted_text: String = String::from_utf8(ciphertext.clone()).expect("Invalid input");
-  // debug!("{:?}", &encrypted_text);
 
   ciphertext
 }
