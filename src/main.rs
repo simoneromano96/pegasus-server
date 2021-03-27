@@ -35,14 +35,13 @@ async fn index(
   schema.execute(request).await.into()
 }
 
-async fn gql_playgound() -> HttpResponse {
-  HttpResponse::Ok()
-    .content_type("text/html; charset=utf-8")
-    .body(playground_source(
-      GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
-    ))
-}
-
+// async fn gql_playgound() -> HttpResponse {
+//   HttpResponse::Ok()
+//     .content_type("text/html; charset=utf-8")
+//     .body(playground_source(
+//       GraphQLPlaygroundConfig::new("/").subscription_endpoint("/"),
+//     ))
+// }
 // async fn index_ws(
 //     schema: web::Data<MySchema>,
 //     req: HttpRequest,
@@ -99,7 +98,7 @@ async fn main() -> std::io::Result<()> {
       //         .guard(guard::Header("upgrade", "websocket"))
       //         .to(index_ws),
       // )
-      .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
+      // .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
   })
   .bind(format!("0.0.0.0:{}", &APP_CONFIG.server.port))?
   .run()

@@ -23,6 +23,7 @@ pub enum UserErrors {
 
 #[derive(Debug, Clone, Model, Serialize, Deserialize, SimpleObject)]
 #[graphql(complex)]
+#[serde(rename_all = "camelCase")]
 #[model(index(keys = r#"doc!{"username": 1}"#, options = r#"doc!{"unique": true}"#))]
 pub struct User {
   /// The user ID
@@ -49,8 +50,8 @@ impl User {
     let user_id = self.id.as_ref().unwrap();
     let lookup_query = doc! {
       "$lookup": {
-        "from": User::COLLECTION_NAME,
-        "localField": "account_ids",
+        "from": Account::COLLECTION_NAME,
+        "localField": "accountIds",
         "foreignField": "_id",
         "as": "accounts",
         // "pipeline": [{
@@ -60,6 +61,7 @@ impl User {
         // }]
       }
     };
+    debug!("{:?}", &lookup_query);
     let accounts: Vec<Document> = User::collection(&db).aggregate(vec![lookup_query], None).await?.try_collect().await?;
     debug!("{:?}", accounts);
 

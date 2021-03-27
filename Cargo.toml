@@ -15,6 +15,8 @@ anyhow = "1.0.39"
 async-graphql = "2.6.2"
 # actix-web graphql adapter
 async-graphql-actix-web = "2.6.2"
+# chacha stream cipher
+chacha20poly1305 = "0.7.1"
 # Configuration helper
 config = { version = "0.11.0", default-features = false, features = ["yaml"] }
 # Hashers
@@ -31,6 +33,9 @@ log = "0.4.14"
 log4rs = { version = "1.0.0", features = ["gzip"] }
 # URI safe and cryptographically secure random string generator
 nanoid = "0.3.0"
+# Random number generators
+rand = "0.8.3"
+rand_chacha = "0.3.0"
 # Redis client (pinned to 0.17.0 for tokio <0.3, 0.18.0 <1 compatibility, required by wither and actix-web)
 redis = { version = "0.17.0", features = ["aio", "tokio-comp", "connection-manager"] }
 # Serialize/Deserializer
