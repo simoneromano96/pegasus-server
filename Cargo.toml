@@ -19,7 +19,7 @@ async-graphql-actix-web = "2.6.2"
 chacha20poly1305 = "0.7.1"
 # Configuration helper
 config = { version = "0.11.0", default-features = false, features = ["yaml"] }
-# Hashers
+# Password Hashers
 djangohashers = { version = "1.4.0", default-features = false, features = ["with_argon2"] }
 # Cursors traits
 futures = "0.3.13"
@@ -41,6 +41,8 @@ redis = { version = "0.17.0", features = ["aio", "tokio-comp", "connection-manag
 # Serialize/Deserializer
 serde = { version = "1.0.124", features = ["derive"] }
 serde_json = "1.0.64"
+# SHA3 Hashing function
+sha3 = "0.9.1"
 # Error derive
 thiserror = "1.0.24"
 # Time utils
