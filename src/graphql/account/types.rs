@@ -1,10 +1,12 @@
-use actix_web::web::Bytes;
+use anyhow::Result;
 use async_graphql::{ComplexObject, SimpleObject};
 use log::debug;
 use serde::{Deserialize, Serialize};
-use anyhow::Result;
-use thiserror::Error;
-use wither::{WitherError, bson::{Binary, doc, oid::ObjectId}, mongodb::Database, prelude::*};
+use wither::{
+  bson::{doc, oid::ObjectId, Binary},
+  mongodb::Database,
+  prelude::*,
+};
 
 use crate::graphql::User;
 use crate::utils::encrypt_data;
@@ -42,7 +44,7 @@ pub async fn create_account(
   password: Option<String>,
   notes: Option<String>,
 ) -> Result<Account> {
-  let encrypted_username = encrypt_data(user_password.clone(), username.clone());
+  let encrypted_username = encrypt_data(user_password.as_bytes(), username.as_bytes());
   debug!("{:?}", &encrypted_username);
 
   let encrypted_bson = Binary {
@@ -60,7 +62,7 @@ pub async fn create_account(
   new_account.save(db, None).await?;
 
   let account_id = new_account.id.as_ref().unwrap();
-  
+
   debug!("{:?}", &new_account);
 
   let mut db_user = user.clone();

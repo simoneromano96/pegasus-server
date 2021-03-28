@@ -28,6 +28,7 @@ async fn index(
   gql_request: Request,
 ) -> Response {
   let mut request = gql_request.into_inner();
+  // Get the user session and add it to the context
   let user_session = get_session(req, &redis).await;
   if let Some(session) = user_session {
     request = request.data(session);

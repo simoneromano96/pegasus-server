@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 # HTTP Server
 actix-web = { version = "3.3.2", features = ["secure-cookies"] }
-# Handle errors with enums
+# Idiomatic error handling
 anyhow = "1.0.39"
 # Graphql implementation
 async-graphql = "2.6.2"
@@ -19,7 +19,7 @@ async-graphql-actix-web = "2.6.2"
 chacha20poly1305 = "0.7.1"
 # Configuration helper
 config = { version = "0.11.0", default-features = false, features = ["yaml"] }
-# Password Hashers
+# Password Hashers, remove this in favour of https://docs.rs/argon2/0.1.4/argon2/
 djangohashers = { version = "1.4.0", default-features = false, features = ["with_argon2"] }
 # Cursors traits
 futures = "0.3.13"

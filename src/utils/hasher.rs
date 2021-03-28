@@ -10,11 +10,15 @@ pub enum PasswordErrors {
 }
 
 /// Hashes a password
+/// 
+/// https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 pub fn hash_password(password: &str) -> String {
   make_password_with_algorithm(password, Argon2)
 }
 
 /// Verify a password, gives Ok if the password is verified else the error
+///
+/// https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 pub fn verify_password(password: &str, encoded: &str) -> Result<(), PasswordErrors> {
   match check_password(password, encoded) {
     Ok(valid) => {
