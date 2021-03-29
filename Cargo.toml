@@ -15,6 +15,8 @@ anyhow = "1.0.39"
 async-graphql = "2.6.2"
 # actix-web graphql adapter
 async-graphql-actix-web = "2.6.2"
+# Blake3 hashing function
+blake3 = "0.3.7"
 # chacha stream cipher
 chacha20poly1305 = "0.7.1"
 # Configuration helper
@@ -42,7 +44,7 @@ redis = { version = "0.17.0", features = ["aio", "tokio-comp", "connection-manag
 serde = { version = "1.0.124", features = ["derive"] }
 serde_json = "1.0.64"
 # SHA3 Hashing function
-sha3 = "0.9.1"
+# sha3 = "0.9.1"
 # Error derive
 thiserror = "1.0.24"
 # Time utils

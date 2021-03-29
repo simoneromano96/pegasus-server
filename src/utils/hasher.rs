@@ -1,3 +1,4 @@
+use blake3::{Hash, Hasher as BlakeHasher};
 use djangohashers::{check_password, make_password_with_algorithm, Algorithm::Argon2};
 use thiserror::Error;
 
@@ -30,4 +31,14 @@ pub fn verify_password(password: &str, encoded: &str) -> Result<(), PasswordErro
     }
     Err(_) => Err(PasswordErrors::HashError),
   }
+}
+
+/// Generic hash
+pub fn hash_data(data: &[u8]) -> Hash {
+  // Create a BLAKE 3 hasher
+  let mut hasher = BlakeHasher::new();
+  // Write input message
+  hasher.update(data);
+  // Return the hashed bytes
+  hasher.finalize()
 }

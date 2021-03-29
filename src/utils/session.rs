@@ -21,7 +21,16 @@ pub enum SessionErrors {
 }
 
 /// Extracts encrypted user session from a HTTP Request
-pub async fn get_session(req: HttpRequest, redis: &Client) -> Option<UserSession> {
+///
+/// This function works like this:
+///
+/// 1. Take the HTTP request 
+/// 2. Extract the cookie 
+/// 3. Decrypts the cookie (AES) 
+/// 4. Get the session_id from the cookie 
+/// 5. Gets the value from redis
+/// 6. Returns the UserSession struct
+pub async fn get_session(redis: &Client, req: HttpRequest) -> Option<UserSession> {
   let mut user_session = None;
   // Get the encrypted cookie from the request
   if let Some(encrypted_cookie) = req.cookie(&APP_CONFIG.cookie.name) {
@@ -50,6 +59,7 @@ pub async fn get_session(req: HttpRequest, redis: &Client) -> Option<UserSession
 }
 
 /// Create an encrypted user session
+///
 /// Returns an encrypted cookie
 pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
   // Generate random id
@@ -83,14 +93,14 @@ pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
   }
 }
 
-/// Create an expired cookie
+/// Create an expired cookie and delete session from redis
 pub async fn destroy_session(redis: &Client, session_id: &str) -> Result<String> {
   let mut redis_connection = redis.get_async_connection().await?;
   redis_connection.del(session_id).await?;
   Ok(create_expired_session_cookie().to_string())
 }
 
-/// Build a session cookie
+/// Build a session cooki with the default values
 fn create_session_cookie<'a>(value: &str) -> Cookie<'a> {
   Cookie::build(APP_CONFIG.cookie.name.clone(), value.to_owned())
     .max_age(Duration::seconds(APP_CONFIG.cookie.maxage.into()))
@@ -102,7 +112,7 @@ fn create_session_cookie<'a>(value: &str) -> Cookie<'a> {
     .finish()
 }
 
-/// Build an expired session cookie
+/// Build an expired session cookie `max_age: 0`
 fn create_expired_session_cookie<'a>() -> Cookie<'a> {
   Cookie::build(APP_CONFIG.cookie.name.clone(), "")
     .max_age(Duration::zero())

@@ -5,7 +5,8 @@ use chacha20poly1305::{
 use log::debug;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha20Rng;
-use sha3::{Digest, Sha3_256};
+
+use super::hash_data;
 
 /// This function takes a secret key and some data and gives back the encrypted text
 ///
@@ -21,19 +22,13 @@ use sha3::{Digest, Sha3_256};
 pub fn encrypt_data(key: &[u8], data: &[u8]) -> Vec<u8> {
   debug!("Encrypting: {:?} with {:?}", &data, &key);
 
-  // Create a SHA3-256 hasher
-  let mut hasher = Sha3_256::new();
-
-  // Write input message
-  hasher.update(key);
-
   // Read hash digest
-  let hashed_key = hasher.finalize();
+  let hashed_key = hash_data(data);
 
   debug!("{:?}", &hashed_key);
 
   // The key MUST be 32-bytes or 256-bits
-  let key = Key::from_slice(&hashed_key);
+  let key = Key::from_slice(hashed_key.as_bytes());
 
   // Create the cipher with the given key
   let cipher = XChaCha20Poly1305::new(key);
@@ -48,9 +43,7 @@ pub fn encrypt_data(key: &[u8], data: &[u8]) -> Vec<u8> {
   let nonce = XNonce::from_slice(&random_nonce);
 
   // Finally encrypt the text
-  let ciphertext = cipher
-    .encrypt(nonce, data)
-    .expect("encryption failure!");
+  let ciphertext = cipher.encrypt(nonce, data).expect("encryption failure!");
 
   debug!("{:?}", &ciphertext);
 

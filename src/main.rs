@@ -3,13 +3,8 @@ mod graphql;
 mod types;
 mod utils;
 
-use std::sync::Arc;
-
-use actix_web::{self, guard, web, App, HttpRequest, HttpResponse, HttpServer};
-use async_graphql::{
-  http::{playground_source, GraphQLPlaygroundConfig},
-  EmptySubscription, Schema,
-};
+use actix_web::{self, guard, web, App, HttpRequest, HttpServer};
+use async_graphql::{EmptySubscription, Schema};
 use async_graphql_actix_web::{Request, Response};
 use configuration::init_logger;
 use graphql::{Mutation, MySchema, Query};
@@ -23,13 +18,13 @@ use crate::configuration::APP_CONFIG;
 async fn index(
   schema: Data<MySchema>,
   // app_context: web::Data<AppContext>,
-  redis: Data<Arc<RedisClient>>,
+  redis: Data<RedisClient>,
   req: HttpRequest,
   gql_request: Request,
 ) -> Response {
   let mut request = gql_request.into_inner();
   // Get the user session and add it to the context
-  let user_session = get_session(req, &redis).await;
+  let user_session = get_session(&redis, req).await;
   if let Some(session) = user_session {
     request = request.data(session);
   }
@@ -74,10 +69,7 @@ async fn main() -> std::io::Result<()> {
     .expect("Could not initialise database!");
 
   // Redis client
-  let redis_client = init_redis_client().expect("Could not initialise redis!");
-
-  // Wrap Redis in Arc for cloning
-  let redis = Arc::new(redis_client);
+  let redis = init_redis_client().expect("Could not initialise redis!");
 
   let app_context = AppContext {
     db,
@@ -93,13 +85,13 @@ async fn main() -> std::io::Result<()> {
       .data(schema.clone())
       .data(redis.clone())
       .service(web::resource("/").guard(guard::Post()).to(index))
-      // .service(
-      //     web::resource("/")
-      //         .guard(guard::Get())
-      //         .guard(guard::Header("upgrade", "websocket"))
-      //         .to(index_ws),
-      // )
-      // .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
+    // .service(
+    //     web::resource("/")
+    //         .guard(guard::Get())
+    //         .guard(guard::Header("upgrade", "websocket"))
+    //         .to(index_ws),
+    // )
+    // .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
   })
   .bind(format!("0.0.0.0:{}", &APP_CONFIG.server.port))?
   .run()
