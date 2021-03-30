@@ -23,7 +23,7 @@ pub fn encrypt_data(key: &[u8], data: &[u8]) -> Vec<u8> {
   debug!("Encrypting: {:?} with {:?}", &data, &key);
 
   // Read hash digest
-  let hashed_key = hash_data(data);
+  let hashed_key = hash_data(key);
 
   debug!("{:?}", &hashed_key);
 
@@ -39,7 +39,7 @@ pub fn encrypt_data(key: &[u8], data: &[u8]) -> Vec<u8> {
 
   debug!("{:?}", &random_nonce);
 
-  // The MUST be 24-bytes or 192-bits and unique
+  // The nonce MUST be 24-bytes or 192-bits and unique
   let nonce = XNonce::from_slice(&random_nonce);
 
   // Finally encrypt the text
@@ -50,4 +50,22 @@ pub fn encrypt_data(key: &[u8], data: &[u8]) -> Vec<u8> {
   ciphertext
 }
 
-pub fn decrypt_data() {}
+pub fn decrypt_data(key: &[u8], data: &[u8]) -> Result<Vec<u8>, chacha20poly1305::aead::Error> {
+  debug!("Decrypting: {:?} with {:?}", &data, &key);
+
+  // Read hash digest
+  let hashed_key = hash_data(key);
+
+  debug!("{:?}", &hashed_key);
+
+  // The key MUST be 32-bytes or 256-bits
+  let key = Key::from_slice(hashed_key.as_bytes());
+
+  // Create the cipher with the given key
+  let cipher = XChaCha20Poly1305::new(key);
+
+  // The nonce MUST be 24-bytes or 192-bits and unique
+  let nonce = XNonce::from_slice(b"");
+
+  cipher.decrypt(nonce, data)
+}
