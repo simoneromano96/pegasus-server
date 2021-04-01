@@ -1,5 +1,6 @@
 use blake3::{Hash, Hasher as BlakeHasher};
 use djangohashers::{check_password, make_password_with_algorithm, Algorithm::Argon2};
+use log::debug;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -11,7 +12,7 @@ pub enum PasswordErrors {
 }
 
 /// Hashes a password
-/// 
+///
 /// https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 pub fn hash_password(password: &str) -> String {
   make_password_with_algorithm(password, Argon2)
@@ -33,12 +34,19 @@ pub fn verify_password(password: &str, encoded: &str) -> Result<(), PasswordErro
   }
 }
 
-/// Generic hash
-pub fn hash_data(data: &[u8]) -> Hash {
+/// Generic hash with dynamic digest length
+///
+/// len is the desired digest length, prefer 32 (so 32-bytes or 256-bits) when possible, MUST be at least 1
+pub fn hash_data(data: &[u8], out: &'_ mut [u8]) {
   // Create a BLAKE 3 hasher
   let mut hasher = BlakeHasher::new();
   // Write input message
   hasher.update(data);
+  // Create reader
+  let mut output_reader = hasher.finalize_xof();
+  output_reader.fill(out);
+
+  // debug!("{:?}", out);
   // Return the hashed bytes
-  hasher.finalize()
+  // hasher.finalize();
 }
