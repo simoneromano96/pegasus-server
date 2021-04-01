@@ -38,6 +38,9 @@ pub struct User {
   #[graphql(skip)]
   pub account_ids: Vec<ObjectId>,
   // pub accounts: Option<Vec<Account>>,
+  /// The current user's nonce
+  #[graphql(skip)]
+  pub nonce: i64
 }
 
 #[ComplexObject]
@@ -64,7 +67,7 @@ impl User {
     debug!("{:?}", &lookup_query);
     let accounts: Vec<Document> = User::collection(&db).aggregate(vec![lookup_query], None).await?.try_collect().await?;
     debug!("{:?}", accounts);
-
+    
     Ok(Vec::new())
   }
 }
@@ -78,6 +81,7 @@ pub async fn create_user(db: &Database, username: String, password: &str) -> Res
     username,
     password,
     account_ids,
+    nonce: 0,
   };
   user.save(db, None).await?;
   Ok(user)

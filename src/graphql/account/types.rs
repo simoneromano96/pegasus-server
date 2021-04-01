@@ -1,3 +1,5 @@
+use std::convert::TryInto;
+
 use anyhow::Result;
 use async_graphql::{ComplexObject, SimpleObject};
 use log::debug;
@@ -26,6 +28,8 @@ pub struct Account {
   pub password: Option<String>,
   /// This account notes, can be any additional data
   pub notes: Option<String>,
+  /// This account's nonce
+  pub nonce: i64,
 }
 
 #[ComplexObject]
@@ -38,15 +42,22 @@ impl Account {
 
 pub async fn create_account(
   db: &Database,
-  user: &User,
+  user: &mut User,
   user_password: String,
   username: String,
   password: Option<String>,
   notes: Option<String>,
 ) -> Result<Account> {
-  let encrypted_username = encrypt_data(user_password.as_bytes(), username.as_bytes());
+  // Get and increment user's nonce
+  let nonce = user.nonce + 1;
+
+  debug!("{:?}", &user);
+
+  // Encrypt username
+  let encrypted_username = encrypt_data(user_password.as_bytes(), username.as_bytes(), nonce.try_into()?);
   debug!("{:?}", &encrypted_username);
 
+  // Create encrypted BSON
   let encrypted_bson = Binary {
     bytes: encrypted_username,
     subtype: wither::bson::spec::BinarySubtype::Encrypted,
@@ -57,6 +68,7 @@ pub async fn create_account(
     username: encrypted_bson,
     password,
     notes,
+    nonce
   };
 
   new_account.save(db, None).await?;
@@ -65,11 +77,11 @@ pub async fn create_account(
 
   debug!("{:?}", &new_account);
 
-  let mut db_user = user.clone();
-  db_user.account_ids.push(account_id.clone());
-  db_user.save(db, None).await?;
+  user.account_ids.push(account_id.clone());
+  user.nonce = nonce;
+  user.save(db, None).await?;
 
-  debug!("{:?}", &db_user);
+  debug!("{:?}", &user);
 
   Ok(new_account)
 }

@@ -24,10 +24,10 @@ pub enum SessionErrors {
 ///
 /// This function works like this:
 ///
-/// 1. Take the HTTP request 
-/// 2. Extract the cookie 
-/// 3. Decrypts the cookie (AES) 
-/// 4. Get the session_id from the cookie 
+/// 1. Take the HTTP request
+/// 2. Extract the cookie
+/// 3. Decrypts the cookie (AES)
+/// 4. Get the session_id from the cookie
 /// 5. Gets the value from redis
 /// 6. Returns the UserSession struct
 pub async fn get_session(redis: &Client, req: HttpRequest) -> Option<UserSession> {
@@ -62,12 +62,17 @@ pub async fn get_session(redis: &Client, req: HttpRequest) -> Option<UserSession
 ///
 /// Returns an encrypted cookie
 pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
-  // Generate random id
+  // Generate new random id
   let session_id = nanoid!();
-  // Create a session cookie
-  let plain_cookie = create_session_cookie(&session_id);
 
   // println!("{:?}", &plain_cookie);
+  update_session(redis, &session_id, user).await
+}
+
+/// Update and renew the current user session, create if not present
+pub async fn update_session(redis: &Client, session_id: &str, user: &User) -> Result<String> {
+  // Create a session cookie
+  let plain_cookie = create_session_cookie(&session_id);
 
   // Set cookie
   let mut jar = CookieJar::new();
@@ -95,8 +100,13 @@ pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
 
 /// Create an expired cookie and delete session from redis
 pub async fn destroy_session(redis: &Client, session_id: &str) -> Result<String> {
+  // Get redis connection
   let mut redis_connection = redis.get_async_connection().await?;
+
+  // Delete redis value
   redis_connection.del(session_id).await?;
+
+  // Return expired session
   Ok(create_expired_session_cookie().to_string())
 }
 
