@@ -1,4 +1,4 @@
-FROM rustlang/rust as builder
+FROM rust as builder
 
 WORKDIR /usr/src/pegasus-server
 
