@@ -1,13 +1,20 @@
 use async_graphql::{ComplexObject, Context, SimpleObject};
 use futures::TryStreamExt;
 use log::debug;
+use rand::{Rng, SeedableRng};
+use rand_chacha::ChaCha20Rng;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use wither::{WitherError, bson::{Document, doc, oid::ObjectId}, mongodb::Database, prelude::*};
+use wither::{
+  bson::{doc, oid::ObjectId, Binary, Document},
+  mongodb::Database,
+  prelude::*,
+  WitherError,
+};
 
 use crate::{
-  types::AppContext,
   graphql::Account,
+  types::AppContext,
   utils::{hash_password, verify_password, PasswordErrors},
 };
 
@@ -38,9 +45,9 @@ pub struct User {
   #[graphql(skip)]
   pub account_ids: Vec<ObjectId>,
   // pub accounts: Option<Vec<Account>>,
-  /// The current user's nonce
+  /// The user's nonce
   #[graphql(skip)]
-  pub nonce: i64
+  pub nonce: Binary,
 }
 
 #[ComplexObject]
@@ -65,35 +72,66 @@ impl User {
       }
     };
     debug!("{:?}", &lookup_query);
-    let accounts: Vec<Document> = User::collection(&db).aggregate(vec![lookup_query], None).await?.try_collect().await?;
+    let accounts: Vec<Document> = User::collection(&db)
+      .aggregate(vec![lookup_query], None)
+      .await?
+      .try_collect()
+      .await?;
     debug!("{:?}", accounts);
-    
+
     Ok(Vec::new())
   }
 }
 
 /// Method to create a User, hashing the password
-pub async fn create_user(db: &Database, username: String, password: &str) -> Result<User, UserErrors> {
+pub async fn create_user(
+  db: &Database,
+  username: String,
+  password: &str,
+) -> Result<User, UserErrors> {
+  // Hash user password
   let password = hash_password(password);
+
+  // Initialize account_ids to an empty array
   let account_ids = Vec::new();
+
+  // Generate a random generator getting entropy from the OS
+  let mut rng = ChaCha20Rng::from_entropy();
+
+  // Generate the nonce
+  let random_nonce: [u8; 32] = rng.gen();
+
+  let nonce = Binary {
+    subtype: wither::bson::spec::BinarySubtype::Generic,
+    bytes: random_nonce.to_vec(),
+  };
+
+  // Create the user structure
   let mut user = User {
     id: None,
     username,
     password,
     account_ids,
-    nonce: 0,
+    nonce,
   };
+
+  // Save the user into the db
   user.save(db, None).await?;
+
+  // Return the new user
   Ok(user)
 }
 
 /// Logs in a user
 pub async fn login_user(db: &Database, username: &str, password: &str) -> Result<User, UserErrors> {
+  // Find a user with the matching username
   match User::find_one(&db, doc! { "username": username }, None).await? {
+    // If found verify the password
     Some(user) => {
       verify_password(password, &user.password)?;
       Ok(user)
     }
+    // Else Notify that the user does not exist
     None => Err(UserErrors::UserNotFound(String::from(username))),
   }
 }

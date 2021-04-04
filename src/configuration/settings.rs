@@ -5,12 +5,15 @@ use config::{Config, Environment, File};
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 
+use crate::utils::hash_data;
+
 lazy_static! {
   pub static ref APP_CONFIG: Settings = Settings::init_config();
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+/// Mongo database configuration
 pub struct MongoConfig {
   /// DB Connection URI
   pub uri: String,
@@ -20,7 +23,9 @@ pub struct MongoConfig {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ServerConfig {
+/// App and server configuration
+pub struct AppConfig {
+  /// Server's port
   pub port: u16,
 }
 
@@ -43,6 +48,7 @@ impl Into<actix_web::cookie::SameSite> for SameSite {
     }
   }
 }
+
 /// Reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -92,8 +98,8 @@ pub struct Settings {
   pub logger: LoggerConfig,
   /// Mongo database configuration
   pub mongo: MongoConfig,
-  /// Some server configuration
-  pub server: ServerConfig,
+  /// App and server configuration
+  pub app: AppConfig,
   /// Cookie and session configuration
   pub cookie: CookieConfig,
   /// Redis configuration
@@ -129,8 +135,16 @@ impl Settings {
     // Deserialize configuration
     let mut r: Settings = s.try_into().expect("Configuration error");
 
-    let key = Key::from(r.cookie.secret.as_bytes());
+    // Allocate the secret
+    let mut secret: [u8; 64] = [0; 64];
 
+    // Hash it
+    hash_data(r.cookie.secret.as_bytes(), &mut secret);
+
+    // Create the key
+    let key = Key::from(&secret);
+
+    // Save it into the configration
     r.cookie.key = Some(key);
 
     r

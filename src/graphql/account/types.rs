@@ -1,5 +1,3 @@
-use std::convert::TryInto;
-
 use anyhow::Result;
 use async_graphql::{ComplexObject, SimpleObject};
 use log::debug;
@@ -17,6 +15,7 @@ use crate::utils::encrypt_data;
 #[serde(rename_all = "camelCase")]
 #[model()]
 #[graphql(complex)]
+/// An account represents a user's credential, for example `google.com` may have `user@gmail.com`
 pub struct Account {
   /// This account ID
   #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
@@ -28,8 +27,6 @@ pub struct Account {
   pub password: Option<String>,
   /// This account notes, can be any additional data
   pub notes: Option<String>,
-  /// This account's nonce
-  pub nonce: i64,
 }
 
 #[ComplexObject]
@@ -40,6 +37,7 @@ impl Account {
   }
 }
 
+/// Creates a new `Account`
 pub async fn create_account(
   db: &Database,
   user: &mut User,
@@ -49,12 +47,12 @@ pub async fn create_account(
   notes: Option<String>,
 ) -> Result<Account> {
   // Get and increment user's nonce
-  let nonce = user.nonce + 1;
+  let nonce = &user.nonce.bytes;
 
   debug!("{:?}", &user);
 
   // Encrypt username
-  let encrypted_username = encrypt_data(user_password.as_bytes(), username.as_bytes(), nonce.try_into()?);
+  let encrypted_username = encrypt_data(user_password.as_bytes(), username.as_bytes(), nonce);
   debug!("{:?}", &encrypted_username);
 
   // Create encrypted BSON
@@ -63,25 +61,30 @@ pub async fn create_account(
     subtype: wither::bson::spec::BinarySubtype::Encrypted,
   };
 
+  // Create the new account
   let mut new_account = Account {
     id: None,
     username: encrypted_bson,
     password,
     notes,
-    nonce
   };
 
+  // Save the new account
   new_account.save(db, None).await?;
 
+  // Take the new account ID
   let account_id = new_account.id.as_ref().unwrap();
 
   debug!("{:?}", &new_account);
 
+  // Update user account ids
   user.account_ids.push(account_id.clone());
-  user.nonce = nonce;
+
+  // Save the user
   user.save(db, None).await?;
 
   debug!("{:?}", &user);
 
+  // Return the new account
   Ok(new_account)
 }

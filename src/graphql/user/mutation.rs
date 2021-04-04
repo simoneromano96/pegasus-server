@@ -1,7 +1,7 @@
 use async_graphql::{Context, Object, Result};
 use http::header::SET_COOKIE;
 
-use super::{User, create_user, login_user};
+use super::{create_user, login_user, User};
 use crate::types::{AppContext, UserSession};
 use crate::utils::{create_session, destroy_session};
 

@@ -74,7 +74,7 @@ pub async fn update_session(redis: &Client, session_id: &str, user: &User) -> Re
   // Create a session cookie
   let plain_cookie = create_session_cookie(&session_id);
 
-  // Set cookie
+  // Set cookie in the private cookie jar
   let mut jar = CookieJar::new();
   jar
     .private(&APP_CONFIG.cookie.key.as_ref().unwrap())

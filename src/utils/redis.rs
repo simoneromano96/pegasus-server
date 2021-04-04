@@ -14,7 +14,7 @@ pub fn init_redis_client() -> Result<Client, RedisError> {
 
 /// Helper to set a serializable value into redis with an optional expire time
 ///
-/// the expiry is in `seconds`
+/// the expiry time is in `seconds`
 pub async fn redis_serialize_set<T>(
   redis: &Client,
   key: &str,

@@ -93,7 +93,7 @@ async fn main() -> std::io::Result<()> {
     // )
     // .service(web::resource("/").guard(guard::Get()).to(gql_playgound))
   })
-  .bind(format!("0.0.0.0:{}", &APP_CONFIG.server.port))?
+  .bind(format!("0.0.0.0:{}", &APP_CONFIG.app.port))?
   .run()
   .await
 }
