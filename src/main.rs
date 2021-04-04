@@ -22,12 +22,16 @@ async fn index(
   req: HttpRequest,
   gql_request: Request,
 ) -> Response {
+  // Get the GQL Request
   let mut request = gql_request.into_inner();
+
   // Get the user session and add it to the context
   let user_session = get_session(&redis, req).await;
+
   if let Some(session) = user_session {
     request = request.data(session);
   }
+  
   schema.execute(request).await.into()
 }
 
