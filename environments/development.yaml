@@ -1,22 +1,9 @@
-# Logger configurations
-logger:
-  # Logging level
-  level: debug
-  # File logger path
-  path: ./logs/app.log
-# Mongo configuration
-mongo:
-  # Connection URI
-  uri: mongodb://root:example@localhost:27017/
-  # Database name
-  database: pegasus
-# Redis configuration
-redis:
-  uri: redis://localhost:6379
-# Server configuration
-server:
-  # Server will listen at port
+# App configuration
+app:
+  # App's server will listen at port
   port: 8000
+  # Encryption secret
+  secret: keyboard_cat
 # Cookie configuration
 cookie:
   # The cookie name
@@ -35,3 +22,19 @@ cookie:
   samesite: Strict
   # The encryption secret of the cookie
   secret: c3qtCRWiDWYQ8i9ujtq0Aj6c94OqCPGFZltG63KfrEmRAitqA9hKbrJS47nBg7cR
+# Logger configurations
+logger:
+  # Logging level
+  level: debug
+  # File logger path
+  path: ./logs/app.log
+# Mongo configuration
+mongo:
+  # Connection URI
+  uri: mongodb://root:example@localhost:27017/
+  # Database name
+  database: pegasus
+# Redis configuration
+redis:
+  # Redis connection URI
+  uri: redis://localhost:6379
