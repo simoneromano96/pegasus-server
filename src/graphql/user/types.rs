@@ -13,7 +13,7 @@ use wither::{
 };
 
 use crate::{
-  graphql::Account,
+  graphql::{Account, EncryptedAccount},
   types::AppContext,
   utils::{hash_password, verify_password, PasswordErrors},
 };
@@ -60,7 +60,7 @@ impl User {
     let user_id = self.id.as_ref().unwrap();
     let lookup_query = doc! {
       "$lookup": {
-        "from": Account::COLLECTION_NAME,
+        "from": EncryptedAccount::COLLECTION_NAME,
         "localField": "accountIds",
         "foreignField": "_id",
         "as": "accounts",
@@ -72,6 +72,7 @@ impl User {
       }
     };
     debug!("{:?}", &lookup_query);
+
     let accounts: Vec<Document> = User::collection(&db)
       .aggregate(vec![lookup_query], None)
       .await?

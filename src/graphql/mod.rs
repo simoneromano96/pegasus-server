@@ -1,7 +1,7 @@
 pub mod account;
 pub mod user;
 
-pub use account::Account;
+pub use account::{Account, EncryptedAccount};
 use account::{AccountMutation, AccountQuery};
 use async_graphql::{EmptySubscription, MergedObject, Schema};
 pub use user::User;

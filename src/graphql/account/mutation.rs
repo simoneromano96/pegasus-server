@@ -18,6 +18,7 @@ impl AccountMutation {
     ctx: &Context<'_>,
     user_password: String,
     username: String,
+    uri: String,
     password: Option<String>,
     notes: Option<String>,
   ) -> Result<Account> {
@@ -30,6 +31,7 @@ impl AccountMutation {
       &mut updated_user,
       user_password,
       username,
+      uri,
       password,
       notes,
     )
