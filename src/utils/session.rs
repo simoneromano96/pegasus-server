@@ -5,6 +5,7 @@ use actix_web::{
   HttpMessage, HttpRequest,
 };
 use anyhow::Result;
+use log::debug;
 use nanoid::nanoid;
 use redis::{AsyncCommands, Client};
 use thiserror::Error;
@@ -47,7 +48,8 @@ pub async fn get_session(redis: &Client, req: HttpRequest) -> Option<UserSession
       let session_id = cookie.value();
       // println!("{:?}", cookie.value());
       if let Ok(user) = redis_deserialize_get(&redis, session_id).await {
-        // println!("{:?}", user);
+        debug!("{:?}", &user);
+        // Set user session
         user_session = Some(UserSession {
           user,
           session_id: session_id.to_string(),
@@ -65,6 +67,8 @@ pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
   // Generate new random id
   let session_id = nanoid!();
 
+  debug!("New session_id: {:?} for user: {:?}", &session_id, &user);
+
   // println!("{:?}", &plain_cookie);
   update_session(redis, &session_id, user).await
 }
@@ -73,6 +77,8 @@ pub async fn create_session(redis: &Client, user: &User) -> Result<String> {
 pub async fn update_session(redis: &Client, session_id: &str, user: &User) -> Result<String> {
   // Create a session cookie
   let plain_cookie = create_session_cookie(&session_id);
+
+  debug!("Plain cookie: {:?}", &plain_cookie);
 
   // Set cookie in the private cookie jar
   let mut jar = CookieJar::new();
@@ -91,7 +97,8 @@ pub async fn update_session(redis: &Client, session_id: &str, user: &User) -> Re
 
   // Return the cookie
   if let Some(encrypted_cookie) = jar.get(&APP_CONFIG.cookie.name) {
-    // println!("{:?}", &encrypted_cookie);
+    debug!("Encrypted cookie: {:?}", &encrypted_cookie);
+    
     Ok(encrypted_cookie.to_string())
   } else {
     Err(anyhow::Error::from(SessionErrors::CookieEncryption))

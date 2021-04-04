@@ -8,6 +8,7 @@ use async_graphql::{EmptySubscription, Schema};
 use async_graphql_actix_web::{Request, Response};
 use configuration::init_logger;
 use graphql::{Mutation, MySchema, Query};
+use log::debug;
 use redis::Client as RedisClient;
 use types::AppContext;
 use utils::{get_session, init_database, init_redis_client};
@@ -27,11 +28,13 @@ async fn index(
 
   // Get the user session and add it to the context
   let user_session = get_session(&redis, req).await;
+  debug!("(Maybe) user session: {:?}", &user_session);
 
   if let Some(session) = user_session {
     request = request.data(session);
+    debug!("Added user session to Context");
   }
-  
+
   schema.execute(request).await.into()
 }
 

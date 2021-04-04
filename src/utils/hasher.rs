@@ -35,7 +35,7 @@ pub fn verify_password(password: &str, encoded: &str) -> Result<(), PasswordErro
 
 /// Generic hash with dynamic digest length
 ///
-/// writes to `out`, prefer at least 32 (so 32-bytes or 256-bits) when possible, MUST be at least 1 otherwise will panic
+/// writes to `out`, prefer an output of at least 32 (so 32-bytes or 256-bits) when possible, MUST be at least 1 otherwise will panic
 pub fn hash_data(data: &[u8], out: &'_ mut [u8]) {
   // Create a BLAKE 3 hasher
   let mut hasher = BlakeHasher::new();

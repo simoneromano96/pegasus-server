@@ -101,10 +101,14 @@ pub async fn create_user(
   // Generate the nonce
   let random_nonce: [u8; 32] = rng.gen();
 
+  debug!("{:?}", &random_nonce);
+
   let nonce = Binary {
-    subtype: wither::bson::spec::BinarySubtype::Generic,
+    subtype: wither::bson::spec::BinarySubtype::Encrypted,
     bytes: random_nonce.to_vec(),
   };
+
+  debug!("{:?}", &nonce);
 
   // Create the user structure
   let mut user = User {
