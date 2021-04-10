@@ -60,6 +60,7 @@ pub fn encrypt_data(key: &[u8], nonce: &[u8], data: &[u8]) -> Vec<u8> {
   ciphertext
 }
 
+/// This function takes a secret key, the nonce and some data and gives back the original data
 pub fn decrypt_data(key: &[u8], nonce: &[u8], data: &[u8]) -> Result<Vec<u8>, CryptoErrors> {
   debug!("Decrypting: {:?} with {:?}", &data, &key);
 

@@ -13,11 +13,11 @@ pub struct AccountQuery;
 #[Object]
 impl AccountQuery {
   /// Gets all accounts
-  async fn read_account(&self, ctx: &Context<'_>, account_id: ObjectId, user_password: String) -> Result<Account> {
+  async fn read_account(&self, ctx: &Context<'_>, account_id: ObjectId, master_password: String) -> Result<Account> {
     let AppContext { db, redis } = ctx.data()?;
     let UserSession { user, .. } = ctx.data()?;
 
-    let a = get_account(db, user, account_id, user_password).await?;
+    let a = get_account(db, user, account_id, master_password).await?;
 
     Ok(a)
   }

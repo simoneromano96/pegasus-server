@@ -66,7 +66,7 @@ pub struct Account {
 pub async fn create_account(
   db: &Database,
   user: &mut User,
-  user_password: String,
+  master_password: String,
   username: String,
   uri: String,
   password: Option<String>,
@@ -78,13 +78,13 @@ pub async fn create_account(
   debug!("{:?}", &user);
   // Encrypt username
   let username =
-    encrypt_bson_binary(user_password.as_bytes(), &nonce, username.as_bytes());
+    encrypt_bson_binary(master_password.as_bytes(), &nonce, username.as_bytes());
 
   // Encrypt password
   let mut encrypted_password = None;
   if let Some(password) = password {
     encrypted_password = Some(encrypt_bson_binary(
-      user_password.as_bytes(),
+      master_password.as_bytes(),
       &nonce,
       password.as_bytes(),
     ));
@@ -94,7 +94,7 @@ pub async fn create_account(
   let mut encrypted_notes = None;
   if let Some(notes) = notes {
     encrypted_notes = Some(encrypt_bson_binary(
-      user_password.as_bytes(),
+      master_password.as_bytes(),
       &nonce,
       notes.as_bytes(),
     ));
@@ -128,7 +128,7 @@ pub async fn create_account(
   // Return the new account
   Ok(decrypt_account(
     new_account,
-    user_password.as_bytes(),
+    master_password.as_bytes(),
     &nonce,
     uri,
   )?)
@@ -139,7 +139,7 @@ pub async fn get_account(
   db: &Database,
   user: &User,
   account_id: ObjectId,
-  user_password: String,
+  master_password: String,
 ) -> Result<Account, AccountErrors> {
   // Get account from database
   let encrypted_account = EncryptedAccount::find_one(db, doc! { "_id": &account_id }, None).await?;
@@ -152,7 +152,7 @@ pub async fn get_account(
 
     let uri = encrypted_account.uri.clone();
 
-    let account = decrypt_account(encrypted_account, user_password.as_bytes(), nonce, uri)?;
+    let account = decrypt_account(encrypted_account, master_password.as_bytes(), nonce, uri)?;
 
     debug!("{:?}", &account);
 

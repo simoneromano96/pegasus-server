@@ -16,7 +16,7 @@ impl AccountMutation {
   async fn create_account(
     &self,
     ctx: &Context<'_>,
-    user_password: String,
+    master_password: String,
     username: String,
     uri: String,
     password: Option<String>,
@@ -29,7 +29,7 @@ impl AccountMutation {
     let account = create_account(
       db,
       &mut updated_user,
-      user_password,
+      master_password,
       username,
       uri,
       password,

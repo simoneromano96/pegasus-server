@@ -40,7 +40,7 @@ pub struct User {
   pub username: String,
   /// The user's hashed password, hidden in the graphql schema
   #[graphql(skip)]
-  pub password: String,
+  pub master_password: String,
   /// The user's associated account ids, hidden in the graphql schema
   #[graphql(skip)]
   pub account_ids: Vec<ObjectId>,
@@ -115,7 +115,7 @@ pub async fn create_user(
   let mut user = User {
     id: None,
     username,
-    password,
+    master_password: password,
     account_ids,
     nonce,
   };
@@ -133,7 +133,7 @@ pub async fn login_user(db: &Database, username: &str, password: &str) -> Result
   match User::find_one(&db, doc! { "username": username }, None).await? {
     // If found verify the password
     Some(user) => {
-      verify_password(password, &user.password)?;
+      verify_password(password, &user.master_password)?;
       Ok(user)
     }
     // Else Notify that the user does not exist
