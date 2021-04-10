@@ -2,6 +2,7 @@ use std::string::FromUtf8Error;
 
 use anyhow::Result;
 use async_graphql::{ComplexObject, Context, SimpleObject};
+use futures::TryStreamExt;
 use log::debug;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -12,7 +13,10 @@ use wither::{
   WitherError,
 };
 
-use crate::utils::{CryptoErrors, decrypt_bson_binary, decrypt_data, decrypt_optional_bson_binary, encrypt_bson_binary};
+use crate::utils::{
+  decrypt_bson_binary, decrypt_data, decrypt_optional_bson_binary, encrypt_bson_binary,
+  CryptoErrors,
+};
 use crate::{graphql::User, types::UserSession};
 
 #[derive(Debug, Error)]
@@ -24,7 +28,7 @@ pub enum AccountErrors {
   #[error("{0}")]
   DecryptionError(#[from] CryptoErrors),
   #[error("Invalid UTF-8 string! {0}")]
-  DecodeError(#[from] FromUtf8Error)
+  DecodeError(#[from] FromUtf8Error),
 }
 
 #[derive(Debug, Clone, Model, Serialize, Deserialize)]
@@ -77,8 +81,7 @@ pub async fn create_account(
 
   debug!("{:?}", &user);
   // Encrypt username
-  let username =
-    encrypt_bson_binary(master_password.as_bytes(), &nonce, username.as_bytes());
+  let username = encrypt_bson_binary(master_password.as_bytes(), &nonce, username.as_bytes());
 
   // Encrypt password
   let mut encrypted_password = None;
@@ -133,6 +136,31 @@ pub async fn create_account(
     uri,
   )?)
 }
+
+/// Get multiple accounts by a specific URI
+pub async fn get_accounts_by_uri(
+  db: &Database,
+  user: &User,
+  uri: String,
+  master_password: String,
+) -> Result<Vec<Account>, AccountErrors> {
+  // Get accounts from database
+  let encrypted_accounts: Vec<EncryptedAccount> =
+    EncryptedAccount::find(db, doc! { "uri": &uri }, None)
+      .await?
+      .try_collect()
+      .await?;
+
+  let nonce = &user.nonce.bytes;
+  let mut accounts = Vec::new();
+
+  for encrypted_account in encrypted_accounts {
+    let account = decrypt_account(encrypted_account, master_password.as_bytes(), &nonce, uri.clone())?;
+    accounts.push(account);
+  }
+
+  Ok(accounts)
+  }
 
 /// Gets and decrypts the account
 pub async fn get_account(
