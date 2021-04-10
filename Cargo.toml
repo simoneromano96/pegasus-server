@@ -10,14 +10,18 @@ edition = "2018"
 # HTTP Server
 actix-web = { version = "3.3.2", features = ["secure-cookies"] }
 # Idiomatic error handling
-anyhow = "1.0.38"
+anyhow = "1.0.39"
 # Graphql implementation
-async-graphql = "2.5.9"
+async-graphql = "2.6.2"
 # actix-web graphql adapter
-async-graphql-actix-web = "2.5.9"
+async-graphql-actix-web = "2.6.2"
+# Blake3 hashing function
+blake3 = "0.3.7"
+# chacha stream cipher
+chacha20poly1305 = "0.7.1"
 # Configuration helper
-config = { version = "0.10.1", default-features = false, features = ["yaml"] }
-# Hashers
+config = { version = "0.11.0", default-features = false, features = ["yaml"] }
+# Password Hashers, remove this in favour of https://docs.rs/argon2/0.1.4/argon2/
 djangohashers = { version = "1.4.0", default-features = false, features = ["with_argon2"] }
 # Cursors traits
 futures = "0.3.13"
@@ -25,16 +29,25 @@ futures = "0.3.13"
 http = "0.2.3"
 # Lazy static evaluation
 lazy_static = "1.4.0"
+# Logger
+log = "0.4.14"
+# Logger methods
+log4rs = { version = "1.0.0", features = ["gzip"] }
 # URI safe and cryptographically secure random string generator
 nanoid = "0.3.0"
+# Random number generators
+rand = "0.8.3"
+rand_chacha = "0.3.0"
 # Redis client (pinned to 0.17.0 for tokio <0.3, 0.18.0 <1 compatibility, required by wither and actix-web)
 redis = { version = "0.17.0", features = ["aio", "tokio-comp", "connection-manager"] }
 # Serialize/Deserializer
-serde = { version = "1.0.123", features = ["derive"] }
+serde = { version = "1.0.124", features = ["derive"] }
 serde_json = "1.0.64"
+# SHA3 Hashing function
+# sha3 = "0.9.1"
 # Error derive
 thiserror = "1.0.24"
 # Time utils
-time = "0.2.25"
+time = "0.2.26"
 # MongoDB ODM
 wither = "0.9.0"
