@@ -36,7 +36,7 @@ This list is non-exhaustive of course, see the `cargo.toml` file.
 
 ## TODOs
 
-* [] Password sharing
+* [ ] Password sharing
 
 ## Security checklist
 
