@@ -34,6 +34,10 @@ This list is non-exhaustive of course, see the `cargo.toml` file.
 
 * sha3 (For generic hashing)
 
+## TODOs
+
+* [] Password sharing
+
 ## Security checklist
 
 Securing the mongo db:
